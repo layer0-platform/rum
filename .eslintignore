@@ -1,0 +1,12 @@
+node_modules
+dist
+stage
+docs
+packages/next-example
+packages/lite-example
+packages/devtools/public/widget
+integration-tests/gatsby/public
+integration-tests/sapper/__sapper__
+packages/rum/cdn
+integration-tests/next/build
+integration-tests/cli/sandbox

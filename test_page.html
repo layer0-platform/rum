@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script defer>
+      function sendXdnRum() {
+        new XDN.Metrics({
+          token: 'moovweb.com',
+          router: new XDN.Router().match('/', ({ setPageLabel }) =>
+            setPageLabel('home')
+          ) /* set more page labels like this ... */,
+        }).collect()
+      }
+    </script>
+    <script src="https://rum.moovweb.app/v0.0.1.js" defer onload="sendXdnRum()"></script>
+  </head>
+  <body>
+    Test
+  </body>
+</html>
