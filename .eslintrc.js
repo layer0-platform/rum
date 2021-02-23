@@ -8,12 +8,8 @@ module.exports = {
   },
   parser: 'babel-eslint',
   // 'prettier' avoids conflicts with prettier formatting
-  extends: ['eslint:recommended', 'plugin:react/recommended', 'prettier'],
-  rules: {
-    'react/react-in-jsx-scope': 'off',
-    'react/prop-types': 'off',
-    'react/display-name': 'off',
-  },
+  extends: ['eslint:recommended', 'prettier'],
+  rules: {},
   overrides: [
     {
       files: ['*.ts'],
@@ -40,10 +36,6 @@ module.exports = {
     factory: 'readonly',
     jasmine: 'readonly',
   },
-  settings: {
-    react: {
-      version: 'detect',
-    },
-  },
+  settings: {},
   ignorePatterns: ['**/mocks/**/*'],
 }
