@@ -11,10 +11,10 @@
   "scripts": {
     "unyalc": "yalc remove --all",
     "build": "rm -rf ./dist; mkdir ./dist; cp -r package.json README.md ./dist; tsc; webpack;",
-    "xdn:deploy": "xdn deploy --team=moovweb-rum --site=moovweb-rum --environment=production --token=$XDN_DEPLOY_TOKEN",
     "watch": "npm-watch",
     "push-build": "npm run build && cd dist && yalc push && cd ..",
-    "release": "npm run deploy:cdn && cd ./dist; npm publish --access public",
+    "release": "cd ./dist; npm publish --access public; cd..",
+    "xdn:deploy": "xdn deploy --team=moovweb-rum --site=moovweb-rum --environment=production --token=$XDN_DEPLOY_TOKEN",
     "test": "jest",
     "lint": "eslint --ext .js,.ts --config .eslintrc.js .",
     "lint-staged": "lint-staged",

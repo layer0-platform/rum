@@ -28,7 +28,12 @@ jobs:
 
       - run: npm ci
       - run: npm run build
-      - run: npm run release
+
+      - name: 'Release to NPM'
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+        run: npm run release
+
       - name: 'Deploy to XDN'
         env:
           XDN_DEPLOY_TOKEN: ${{secrets.XDN_DEPLOY_TOKEN}}
