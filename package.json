@@ -9,6 +9,7 @@
     "web-vitals": "^1.1.0"
   },
   "scripts": {
+    "unyalc": "yalc remove --all",
     "build": "rm -rf ./dist; mkdir ./dist; cp -r package.json README.md ./dist; tsc; webpack;",
     "xdn:deploy": "xdn deploy --team=moovweb-rum --site=moovweb-rum --environment=production --token=$XDN_DEPLOY_TOKEN",
     "watch": "npm-watch",
