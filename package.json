@@ -15,7 +15,8 @@
     "watch": "npm-watch",
     "push-build": "npm run build && cd dist && yalc push && cd ..",
     "release": "npm run deploy:cdn && cd ./dist; npm publish --access public",
-    "test": "jest"
+    "test": "jest",
+    "postinstall": "husky install"
   },
   "watch": {
     "push-build": {
