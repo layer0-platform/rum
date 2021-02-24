@@ -57,6 +57,14 @@ export interface MetricsOptions {
 
 /**
  * Collects browser performance metrics and sends them to Moovweb RUM.
+ *
+ * Example:
+ *
+ * ```js
+ *  new Metrics({
+ *    token: 'my-xdn-rum-token', // you can omit this is your site is deployed on the Moovweb XDN
+ *  }).collect()
+ * ```
  */
 export default class Metrics {
   private metrics: { [name: string]: number | undefined } = {}
@@ -71,7 +79,7 @@ export default class Metrics {
   constructor(options: MetricsOptions = {}) {
     this.originalURL = location.href
     this.options = options
-    this.token = options.token || getCookieValue('xdn_eid')
+    this.token = options.token
     this.sendTo = `${this.options.sendTo || DEST_URL}/${this.token}`
     this.pageID = uuid()
   }
@@ -138,7 +146,7 @@ export default class Metrics {
   private createPayload() {
     const timing = getServerTiming()
     const xdnRoutes = timing['xrj']
-    let pageLabel = this.options.pageLabel || this.options.router?.getPageLabel(location.href)
+    let pageLabel = this.options.pageLabel || this.options.router?.getPageLabel(this.originalURL)
 
     if (!pageLabel && xdnRoutes) {
       try {
@@ -165,7 +173,9 @@ export default class Metrics {
       v: this.options.appVersion || timing['xdn-deployment-id'],
       cv: rumClientVersion,
       ht: this.options.cacheHit || timing['xdn-cache']?.includes('HIT') ? 1 : 0,
-      l: pageLabel,
+      l: pageLabel, // for backwards compatibility
+      l0: pageLabel,
+      lx: this.options.router?.getPageLabel(location.href),
       c: this.options.country || timing['country'],
     }
 
