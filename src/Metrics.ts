@@ -79,7 +79,7 @@ export default class Metrics {
   constructor(options: MetricsOptions = {}) {
     this.originalURL = location.href
     this.options = options
-    this.token = options.token
+    this.token = options.token || getCookieValue('xdn_eid')
     this.sendTo = `${this.options.sendTo || DEST_URL}/${this.token}`
     this.pageID = uuid()
   }

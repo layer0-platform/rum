@@ -56,6 +56,7 @@ describe('Metrics', () => {
         ...commonParams,
         t: 'token',
         l: 'product',
+        l0: 'product',
         c: 'USA',
         v: 'v1',
         ht: 1,
@@ -74,6 +75,8 @@ describe('Metrics', () => {
       expect(JSON.parse(metrics.createPayload())).toEqual({
         ...commonParams,
         l: 'home',
+        l0: 'home',
+        lx: 'home',
         t: 'token',
       })
     })
@@ -99,6 +102,7 @@ describe('Metrics', () => {
         ht: 1,
         c: 'USA',
         l: '/p/:id',
+        l0: '/p/:id',
         ct: '4g',
       })
     })
@@ -113,6 +117,7 @@ describe('Metrics', () => {
       expect(JSON.parse(metrics.createPayload())).toEqual({
         ...commonParams,
         l: '/p/:id',
+        l0: '/p/:id',
         t: 'token',
       })
     })
