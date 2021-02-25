@@ -1,6 +1,6 @@
 {
   "name": "@xdn/rum",
-  "version": "0.0.2-alpha.2",
+  "version": "0.0.2-alpha.3",
   "license": "UNLICENSED",
   "dependencies": {
     "lodash.debounce": "^4.0.8",
@@ -17,8 +17,7 @@
     "xdn:deploy": "xdn deploy --team=moovweb-rum --site=moovweb-rum --environment=production --token=$XDN_DEPLOY_TOKEN",
     "test": "jest",
     "lint": "eslint --ext .js,.ts --config .eslintrc.js .",
-    "lint-staged": "lint-staged",
-    "postinstall": "husky install"
+    "lint-staged": "lint-staged"
   },
   "watch": {
     "push-build": {
