@@ -55,6 +55,20 @@ export interface MetricsOptions {
   debug?: boolean
 }
 
+interface MetricsConstructor {
+  new (options: MetricsOptions): Metrics
+}
+
+interface Metrics {
+  /**
+   * Collects all metrics and reports them to XDN RUM.
+   */
+  collect(): Promise<void>
+}
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+declare var Metrics: MetricsConstructor
+
 /**
  * Collects browser performance metrics and sends them to Moovweb RUM.
  *
@@ -66,7 +80,7 @@ export interface MetricsOptions {
  *  }).collect()
  * ```
  */
-export default class Metrics {
+class BrowserMetrics implements Metrics {
   private metrics: { [name: string]: number | undefined } = {}
   private token?: string
   private options: MetricsOptions
@@ -84,7 +98,7 @@ export default class Metrics {
     this.pageID = uuid()
   }
 
-  async collect() {
+  collect() {
     if (isChrome()) {
       // We only collect RUM on Chrome because Google only collects core web vitals using Chrome.
       return Promise.all([
@@ -93,7 +107,9 @@ export default class Metrics {
         this.toPromise(getLCP, true), // setting true here ensures we get LCP immediately
         this.toPromise(getFID),
         this.toPromise(getCLS, true), // send all CLS measurements so we can track it over time and catch CLS during client-side navigation
-      ])
+      ]).then(() => {})
+    } else {
+      return Promise.resolve()
     }
   }
 
@@ -211,3 +227,23 @@ export default class Metrics {
     this.index++
   }, SEND_DELAY)
 }
+
+/**
+ * Here we stub out Metrics so it doesn't throw an error if accidentally
+ * run on the server as might happen with Nuxt, Next, etc...
+ */
+class ServerMetrics implements Metrics {
+  constructor(options: MetricsOptions) {}
+
+  collect() {
+    return Promise.resolve()
+  }
+}
+
+let MetricsType: typeof Metrics = ServerMetrics
+
+if (typeof window !== 'undefined') {
+  MetricsType = BrowserMetrics
+}
+
+export default MetricsType
