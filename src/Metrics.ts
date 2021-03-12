@@ -37,7 +37,7 @@ export interface MetricsOptions {
    */
   country?: string
   /**
-   * True if the response was served from the CDN cache, otherwise false
+   * True if the response was served from the CDN cache, false if it was not, and null if not applicable
    */
   cacheHit?: boolean
   /**
@@ -173,6 +173,11 @@ class BrowserMetrics implements Metrics {
       }
     }
 
+    const isCacheHit = () => {
+      if (timing['xdn-cache']?.includes('HIT')) return 1
+      return timing['xdn-cache']?.includes('MISS') ? 0 : null
+    }
+
     const data: any = {
       ...this.metrics,
       i: this.index,
@@ -188,7 +193,7 @@ class BrowserMetrics implements Metrics {
       h: window.screen.height,
       v: this.options.appVersion || timing['xdn-deployment-id'],
       cv: rumClientVersion,
-      ht: this.options.cacheHit || timing['xdn-cache']?.includes('HIT') ? 1 : 0,
+      ht: this.options.cacheHit || isCacheHit(),
       l: pageLabel, // for backwards compatibility
       l0: pageLabel,
       lx: this.options.router?.getPageLabel(location.href),
