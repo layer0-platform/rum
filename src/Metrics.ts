@@ -178,8 +178,9 @@ class BrowserMetrics implements Metrics {
       if (this.options.cacheHit !== undefined) {
         return this.options.cacheHit ? 1 : 0
       }
-      if (timing['xdn-cache']?.includes('HIT')) return 1
-      return timing['xdn-cache']?.includes('MISS') ? 0 : null
+      const xdnCache = timing['xdn-cache']
+      if (xdnCache?.includes('HIT')) return 1
+      return xdnCache?.includes('MISS') ? 0 : null
     }
 
     const data: any = {
