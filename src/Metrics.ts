@@ -174,6 +174,10 @@ class BrowserMetrics implements Metrics {
     }
 
     const isCacheHit = () => {
+      if (this.options.cacheHit === null) return null
+      if (this.options.cacheHit !== undefined) {
+        return this.options.cacheHit ? 1 : 0
+      }
       if (timing['xdn-cache']?.includes('HIT')) return 1
       return timing['xdn-cache']?.includes('MISS') ? 0 : null
     }
@@ -193,7 +197,7 @@ class BrowserMetrics implements Metrics {
       h: window.screen.height,
       v: this.options.appVersion || timing['xdn-deployment-id'],
       cv: rumClientVersion,
-      ht: this.options.cacheHit || isCacheHit(),
+      ht: isCacheHit(),
       l: pageLabel, // for backwards compatibility
       l0: pageLabel,
       lx: this.options.router?.getPageLabel(location.href),
