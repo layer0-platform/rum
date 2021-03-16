@@ -52,7 +52,7 @@ describe('cdn', () => {
       w: 0,
       h: 0,
       cv: 'development',
-      ht: 0,
+      ht: null,
       l: 'home',
       l0: 'home',
       lx: 'home',
