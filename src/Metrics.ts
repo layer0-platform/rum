@@ -70,13 +70,13 @@ interface Metrics {
 declare var Metrics: MetricsConstructor
 
 /**
- * Collects browser performance metrics and sends them to Moovweb RUM.
+ * Collects browser performance metrics and sends them to Layer0 RUM.
  *
  * Example:
  *
  * ```js
  *  new Metrics({
- *    token: 'my-layer0-rum-token', // you can omit this is your site is deployed on the Moovweb Layer0
+ *    token: 'my-layer0-rum-token', // you can omit this is your site is deployed on Layer0
  *  }).collect()
  * ```
  */
@@ -157,7 +157,7 @@ class BrowserMetrics implements Metrics {
   }
 
   /**
-   * Creates the data payload reported to Moovweb RUM
+   * Creates the data payload reported to Layer0 RUM
    */
   private createPayload() {
     const timing = getServerTiming()
@@ -215,7 +215,7 @@ class BrowserMetrics implements Metrics {
   }
 
   /**
-   * Sends all collected metrics to Moovweb RUM.
+   * Sends all collected metrics to Layer0 RUM.
    */
   send = debounce(() => {
     const body = this.createPayload()
