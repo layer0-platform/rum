@@ -93,7 +93,7 @@ class BrowserMetrics implements Metrics {
   constructor(options: MetricsOptions = {}) {
     this.originalURL = location.href
     this.options = options
-    this.token = options.token || getCookieValue('layer0_eid')
+    this.token = options.token
     this.sendTo = `${this.options.sendTo || DEST_URL}/${this.token}`
     this.pageID = uuid()
   }
@@ -173,15 +173,6 @@ class BrowserMetrics implements Metrics {
       }
     }
 
-    const isCacheHit = () => {
-      if (this.options.cacheHit != null) {
-        return this.options.cacheHit ? 1 : 0
-      }
-      const xdnCache = timing['layer0-cache']
-      if (xdnCache?.includes('HIT')) return 1
-      return xdnCache?.includes('MISS') ? 0 : null
-    }
-
     const data: any = {
       ...this.metrics,
       i: this.index,
@@ -191,13 +182,13 @@ class BrowserMetrics implements Metrics {
       pid: this.pageID,
       t: this.token,
       ti: document.title,
-      d: this.options.splitTestVariant || getCookieValue('layer0_destination'),
+      d: this.getSplitTestVariant(),
       ua: navigator.userAgent,
       w: window.screen.width,
       h: window.screen.height,
-      v: this.options.appVersion || timing['layer0-deployment-id'],
+      v: this.getAppVersion(timing),
       cv: rumClientVersion,
-      ht: isCacheHit(),
+      ht: this.isCacheHit(timing),
       l: pageLabel, // for backwards compatibility
       l0: pageLabel,
       lx: this.options.router?.getPageLabel(location.href),
@@ -212,6 +203,27 @@ class BrowserMetrics implements Metrics {
     }
 
     return JSON.stringify(data)
+  }
+
+  getAppVersion(timing: any) {
+    return this.options.appVersion || timing['layer0-deployment-id'] || timing['xdn-deployment-id']
+  }
+
+  getSplitTestVariant() {
+    return (
+      this.options.splitTestVariant ||
+      getCookieValue('layer0_destination') ||
+      getCookieValue('xdn_destination')
+    )
+  }
+
+  isCacheHit(timing: any) {
+    if (this.options.cacheHit != null) {
+      return this.options.cacheHit ? 1 : 0
+    }
+    const xdnCache = timing['layer0-cache'] || timing['xdn-cache']
+    if (xdnCache?.includes('HIT')) return 1
+    return xdnCache?.includes('MISS') ? 0 : null
   }
 
   /**

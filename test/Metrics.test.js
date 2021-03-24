@@ -91,6 +91,7 @@ describe('Metrics', () => {
 
         timing = {
           'layer0-cache': 'L1-HIT',
+          'layer0-deployment-id': 'deployment-1',
           xrj: '{ "path": "/p/:id" }',
           country: 'USA',
         }
@@ -100,6 +101,35 @@ describe('Metrics', () => {
         expect(JSON.parse(metrics.createPayload())).toEqual({
           ...commonParams,
           t: 'token',
+          v: 'deployment-1',
+          ht: 1,
+          c: 'USA',
+          l: '/p/:id',
+          l0: '/p/:id',
+          ct: '4g',
+        })
+      })
+
+      it('should use server-timing headers', () => {
+        document.cookie = 'xdn_destination=A'
+
+        const metrics = new Metrics({
+          token: 'token',
+        })
+
+        timing = {
+          'xdn-cache': 'L1-HIT',
+          'xdn-deployment-id': 'deployment-2',
+          xrj: '{ "path": "/p/:id" }',
+          country: 'USA',
+        }
+
+        window.navigator.connection = { effectiveType: '4g' }
+
+        expect(JSON.parse(metrics.createPayload())).toEqual({
+          ...commonParams,
+          t: 'token',
+          v: 'deployment-2',
           ht: 1,
           c: 'USA',
           l: '/p/:id',
@@ -120,15 +150,6 @@ describe('Metrics', () => {
           l: '/p/:id',
           l0: '/p/:id',
           t: 'token',
-        })
-      })
-
-      it('should get the token from layer0_eid', () => {
-        cookies['layer0_eid'] = 'eid'
-        const metrics = new Metrics()
-        expect(JSON.parse(metrics.createPayload())).toEqual({
-          ...commonParams,
-          t: 'eid',
         })
       })
 
