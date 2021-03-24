@@ -15,7 +15,7 @@ const commonParams = {
   cn: 0,
   i: 0,
   pid: expect.any(String),
-  ht: 0,
+  ht: null,
 }
 
 describe('Metrics', () => {
@@ -64,7 +64,7 @@ describe('Metrics', () => {
         })
       })
 
-      it('should use the router to determine the pagelLabel', () => {
+      it('should use the router to determine the pageLabel', () => {
         const metrics = new Metrics({
           token: 'token',
           router: new Router()
@@ -129,6 +129,45 @@ describe('Metrics', () => {
         expect(JSON.parse(metrics.createPayload())).toEqual({
           ...commonParams,
           t: 'eid',
+        })
+      })
+
+      it('should give correct values for ht (cache hit)', () => {
+        timing = {}
+        let metrics = new Metrics()
+        expect(JSON.parse(metrics.createPayload())).toEqual({
+          ...commonParams,
+        })
+
+        metrics = new Metrics({ cacheHit: null })
+        expect(JSON.parse(metrics.createPayload())).toEqual({
+          ...commonParams,
+        })
+
+        metrics = new Metrics({ cacheHit: 0 })
+        expect(JSON.parse(metrics.createPayload())).toEqual({
+          ...commonParams,
+          ht: 0,
+        })
+
+        metrics = new Metrics({ cacheHit: 1 })
+        expect(JSON.parse(metrics.createPayload())).toEqual({
+          ...commonParams,
+          ht: 1,
+        })
+
+        timing = { 'xdn-cache': 'L1-HIT' }
+        metrics = new Metrics()
+        expect(JSON.parse(metrics.createPayload())).toEqual({
+          ...commonParams,
+          ht: 1,
+        })
+
+        timing = { 'xdn-cache': 'L1-MISS' }
+        metrics = new Metrics()
+        expect(JSON.parse(metrics.createPayload())).toEqual({
+          ...commonParams,
+          ht: 0,
         })
       })
     })
