@@ -6,24 +6,27 @@ import Router from './Router'
  *
  * ```html
  *  <script defer>
- *    function initXdnRum() {
- *      new XDN.Metrics({
+ *    function initLayer0Rum() {
+ *      new Layer0.Metrics({
  *        token: 'abc-123',
- *        router: new XDN.Router()
+ *        router: new Layer0.Router()
  *          .match('/', ({ setPageLabel }) => setPageLabel('home'))
  *          .match('/p/:id', ({ setPageLabel }) => setPageLabel('product'))
  *          .match('/c/:id', ({ setPageLabel }) => setPageLabel('category'))
  *      }).collect()
  *    }
  *  </script>
- *  <script src="https://rum.moovweb.app/v1.0.0.js" defer onload="initXdnRum()"></script>
+ *  <script src="https://rum.layer0.co/v1.0.0.js" defer onload="initLayer0Rum()"></script>
  * ```
  */
 
 /* istanbul ignore else */
 if (typeof window !== 'undefined') {
-  ;(window as any).XDN = {
+  const Layer0 = ((window as any).Layer0 = {
     Metrics,
     Router,
-  }
+  })
+
+  // for backwards compatibility
+  ;(window as any).XDN = Layer0
 }

@@ -21,13 +21,13 @@ describe('cdn', () => {
     clear()
   })
 
-  it('should export XDN.Metrics', async done => {
+  it('should export Layer0.Metrics', async done => {
     const fetch = (window.fetch = jest.fn())
     require('../src/cdn')
 
-    await new XDN.Metrics({
+    await new Layer0.Metrics({
       token: 'token',
-      router: new XDN.Router().match('/', ({ setPageLabel }) => setPageLabel('home')),
+      router: new Layer0.Router().match('/', ({ setPageLabel }) => setPageLabel('home')),
     }).collect()
 
     await sleep(SEND_DELAY + 20)
@@ -61,5 +61,9 @@ describe('cdn', () => {
     expect(fetch.mock.calls.length).toBe(1)
 
     done()
+  })
+
+  it('should export XDN.Metrics', () => {
+    expect(XDN).toBe(Layer0)
   })
 })

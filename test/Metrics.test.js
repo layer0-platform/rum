@@ -24,7 +24,7 @@ describe('Metrics', () => {
 
     beforeEach(() => {
       jest.isolateModules(() => {
-        cookies = { xdn_destination: 'A' }
+        cookies = { layer0_destination: 'A' }
         log = jest.spyOn(console, 'log').mockImplementation()
         warn = jest.spyOn(console, 'warn').mockImplementation()
         mockUserAgent('chrome')
@@ -83,14 +83,14 @@ describe('Metrics', () => {
       })
 
       it('should use server-timing headers', () => {
-        document.cookie = 'xdn_destination=A'
+        document.cookie = 'layer0_destination=A'
 
         const metrics = new Metrics({
           token: 'token',
         })
 
         timing = {
-          'xdn-cache': 'L1-HIT',
+          'layer0-cache': 'L1-HIT',
           xrj: '{ "path": "/p/:id" }',
           country: 'USA',
         }
@@ -123,8 +123,8 @@ describe('Metrics', () => {
         })
       })
 
-      it('should get the token from xdn_eid', () => {
-        cookies['xdn_eid'] = 'eid'
+      it('should get the token from layer0_eid', () => {
+        cookies['layer0_eid'] = 'eid'
         const metrics = new Metrics()
         expect(JSON.parse(metrics.createPayload())).toEqual({
           ...commonParams,

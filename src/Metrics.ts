@@ -17,7 +17,7 @@ try {
 
 export interface MetricsOptions {
   /**
-   * Your XDN RUM site token,
+   * Your Layer0 RUM site token,
    */
   token?: string
   /**
@@ -61,7 +61,7 @@ interface MetricsConstructor {
 
 interface Metrics {
   /**
-   * Collects all metrics and reports them to XDN RUM.
+   * Collects all metrics and reports them to Layer0 RUM.
    */
   collect(): Promise<void>
 }
@@ -76,7 +76,7 @@ declare var Metrics: MetricsConstructor
  *
  * ```js
  *  new Metrics({
- *    token: 'my-xdn-rum-token', // you can omit this is your site is deployed on the Moovweb XDN
+ *    token: 'my-layer0-rum-token', // you can omit this is your site is deployed on the Moovweb Layer0
  *  }).collect()
  * ```
  */
@@ -93,7 +93,7 @@ class BrowserMetrics implements Metrics {
   constructor(options: MetricsOptions = {}) {
     this.originalURL = location.href
     this.options = options
-    this.token = options.token || getCookieValue('xdn_eid')
+    this.token = options.token || getCookieValue('layer0_eid')
     this.sendTo = `${this.options.sendTo || DEST_URL}/${this.token}`
     this.pageID = uuid()
   }
@@ -161,15 +161,15 @@ class BrowserMetrics implements Metrics {
    */
   private createPayload() {
     const timing = getServerTiming()
-    const xdnRoutes = timing['xrj']
+    const layer0Routes = timing['xrj']
     let pageLabel = this.options.pageLabel || this.options.router?.getPageLabel(this.originalURL)
 
-    if (!pageLabel && xdnRoutes) {
+    if (!pageLabel && layer0Routes) {
       try {
-        const routes = JSON.parse(xdnRoutes)
+        const routes = JSON.parse(layer0Routes)
         pageLabel = routes.path
       } catch (e) {
-        pageLabel = xdnRoutes
+        pageLabel = layer0Routes
       }
     }
 
@@ -182,13 +182,13 @@ class BrowserMetrics implements Metrics {
       pid: this.pageID,
       t: this.token,
       ti: document.title,
-      d: this.options.splitTestVariant || getCookieValue('xdn_destination'),
+      d: this.options.splitTestVariant || getCookieValue('layer0_destination'),
       ua: navigator.userAgent,
       w: window.screen.width,
       h: window.screen.height,
-      v: this.options.appVersion || timing['xdn-deployment-id'],
+      v: this.options.appVersion || timing['layer0-deployment-id'],
       cv: rumClientVersion,
-      ht: this.options.cacheHit || timing['xdn-cache']?.includes('HIT') ? 1 : 0,
+      ht: this.options.cacheHit || timing['layer0-cache']?.includes('HIT') ? 1 : 0,
       l: pageLabel, // for backwards compatibility
       l0: pageLabel,
       lx: this.options.router?.getPageLabel(location.href),
