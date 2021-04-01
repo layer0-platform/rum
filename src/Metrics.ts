@@ -6,6 +6,7 @@ import isChrome from './isChrome'
 import Router from './Router'
 import uuid from './uuid'
 import debounce from 'lodash.debounce'
+import getSelectorForElement from './getSelectorForElement'
 
 let rumClientVersion: string
 
@@ -81,7 +82,7 @@ declare var Metrics: MetricsConstructor
  * ```
  */
 class BrowserMetrics implements Metrics {
-  private metrics: { [name: string]: number | undefined } = {}
+  private metrics: { [name: string]: number | string | undefined }
   private token?: string
   private options: MetricsOptions
   private sendTo: string
@@ -89,13 +90,28 @@ class BrowserMetrics implements Metrics {
   private pageID: string
   private index: number = 0
   private clientNavigationHasOccurred: boolean = false
+  private xdnEnvironmentID?: string
 
   constructor(options: MetricsOptions = {}) {
     this.originalURL = location.href
     this.options = options
-    this.token = options.token || getCookieValue('xdn_eid')
+    this.xdnEnvironmentID = getCookieValue('xdn_eid')
+    this.token = options.token || this.xdnEnvironmentID
     this.sendTo = `${this.options.sendTo || DEST_URL}/${this.token}`
     this.pageID = uuid()
+    this.metrics = {}
+
+    /* istanbul ignore else */
+    if (this.xdnEnvironmentID != null || location.hostname === 'localhost') {
+      this.downloadRouteManifest()
+    }
+  }
+
+  private downloadRouteManifest() {
+    const scriptEl = document.createElement('script')
+    scriptEl.setAttribute('defer', 'on')
+    scriptEl.setAttribute('src', '/__xdn__/cache-manifest.js')
+    document.head.appendChild(scriptEl)
   }
 
   collect() {
@@ -131,9 +147,27 @@ class BrowserMetrics implements Metrics {
           this.clientNavigationHasOccurred = this.originalURL !== location.href
         }
 
-        // record the CLS delta as incremental layout shift if a client side navigation has occurred
-        if (metric.name === 'CLS' && this.clientNavigationHasOccurred) {
-          this.metrics.ils = metric.delta
+        if (metric.name === 'CLS') {
+          // record the CLS delta as incremental layout shift if a client side navigation has occurred
+          if (this.clientNavigationHasOccurred) {
+            this.metrics.ils = metric.delta
+          }
+
+          // record the element that shifted
+          if (metric.entries?.length) {
+            try {
+              // @ts-ignore The typings appear to be wrong here - sources contains the elements causing the CLS
+              const sources: any[] = metric.entries[metric.entries.length - 1].sources
+
+              this.metrics.clsel = sources
+                .map(el => getSelectorForElement(el.node).join(' > '))
+                .join(', ')
+            } catch (e) {
+              // don't fail to report if generating a descriptor fails for some reason
+              /* istanbul ignore next */
+              console.error(e)
+            }
+          }
         }
 
         if (this.options.debug) {
@@ -200,7 +234,7 @@ class BrowserMetrics implements Metrics {
       ht: isCacheHit(),
       l: pageLabel, // for backwards compatibility
       l0: pageLabel,
-      lx: this.options.router?.getPageLabel(location.href),
+      lx: this.getCurrentPageLabel(),
       c: this.options.country || timing['country'],
     }
 
@@ -211,7 +245,32 @@ class BrowserMetrics implements Metrics {
       console.debug('could not obtain navigator.connection metrics')
     }
 
+    this.metrics = {}
+
     return JSON.stringify(data)
+  }
+
+  /**
+   * Returns the page label for the current page using the router specified in options,
+   * or, if no router is specified, matches the current URL path to the correct route
+   * using the XDN cache manifest.
+   * @returns
+   */
+  private getCurrentPageLabel() {
+    // @ts-ignore
+    const { __XDN_CACHE_MANIFEST__ } = window
+
+    if (this.options.router) {
+      return this.options.router.getPageLabel(location.href)
+    } else if (__XDN_CACHE_MANIFEST__) {
+      const matchingRoute = __XDN_CACHE_MANIFEST__.find(
+        (entry: any) =>
+          entry.returnsResponse &&
+          entry.route &&
+          new RegExp(entry.route, 'i').test(location.pathname)
+      )
+      return matchingRoute?.criteriaPath
+    }
   }
 
   /**
@@ -232,7 +291,6 @@ class BrowserMetrics implements Metrics {
       fetch(this.sendTo, { body, method: 'POST', keepalive: true })
     }
 
-    this.metrics = {}
     this.index++
   }, SEND_DELAY)
 }

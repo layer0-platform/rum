@@ -82,6 +82,88 @@ describe('Metrics', () => {
         })
       })
 
+      it('should fall back to using the XDN cache manifest if present to determine the label', async () => {
+        window.__XDN_CACHE_MANIFEST__ = [
+          { route: '^.*$', criteriaPath: '/all', returnsResponse: false },
+          { route: '^/help$', criteriaPath: '/help', returnsResponse: true },
+          { route: '^/$', criteriaPath: '/', returnsResponse: true },
+        ]
+
+        webVitalsMock.setClsDelta(0.1)
+
+        webVitalsMock.setClsEntries([
+          {
+            sources: [
+              {
+                node: document.body,
+              },
+            ],
+          },
+        ])
+
+        try {
+          const metrics = new Metrics({
+            token: 'token',
+          })
+          await metrics.collect()
+          expect(JSON.parse(metrics.createPayload())).toEqual({
+            ...commonParams,
+            cls: 2,
+            fcp: 5,
+            fid: 1,
+            lcp: 3,
+            ttfb: 4,
+            lx: '/',
+            clsel: 'body',
+            t: 'token',
+          })
+        } finally {
+          delete window.__XDN_CACHE_MANIFEST__
+          webVitalsMock.setClsEntries([])
+          webVitalsMock.setClsDelta(0)
+        }
+      })
+
+      it('should not report lx if no route is matched', async () => {
+        window.__XDN_CACHE_MANIFEST__ = [
+          { route: '^.*$', criteriaPath: '/all', returnsResponse: false },
+          { route: '^/help$', criteriaPath: '/help', returnsResponse: true },
+        ]
+
+        webVitalsMock.setClsDelta(0.1)
+
+        webVitalsMock.setClsEntries([
+          {
+            sources: [
+              {
+                node: document.body,
+              },
+            ],
+          },
+        ])
+
+        try {
+          const metrics = new Metrics({
+            token: 'token',
+          })
+          await metrics.collect()
+          expect(JSON.parse(metrics.createPayload())).toEqual({
+            ...commonParams,
+            cls: 2,
+            fcp: 5,
+            fid: 1,
+            lcp: 3,
+            ttfb: 4,
+            clsel: 'body',
+            t: 'token',
+          })
+        } finally {
+          delete window.__XDN_CACHE_MANIFEST__
+          webVitalsMock.setClsEntries([])
+          webVitalsMock.setClsDelta(0)
+        }
+      })
+
       it('should use server-timing headers', () => {
         document.cookie = 'xdn_destination=A'
 
@@ -147,27 +229,27 @@ describe('Metrics', () => {
         metrics = new Metrics({ cacheHit: 0 })
         expect(JSON.parse(metrics.createPayload())).toEqual({
           ...commonParams,
-          ht: 0
+          ht: 0,
         })
 
         metrics = new Metrics({ cacheHit: 1 })
         expect(JSON.parse(metrics.createPayload())).toEqual({
           ...commonParams,
-          ht: 1
+          ht: 1,
         })
 
         timing = { 'xdn-cache': 'L1-HIT' }
         metrics = new Metrics()
         expect(JSON.parse(metrics.createPayload())).toEqual({
           ...commonParams,
-          ht: 1
+          ht: 1,
         })
 
         timing = { 'xdn-cache': 'L1-MISS' }
         metrics = new Metrics()
         expect(JSON.parse(metrics.createPayload())).toEqual({
           ...commonParams,
-          ht: 0
+          ht: 0,
         })
       })
     })
