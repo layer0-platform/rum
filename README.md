@@ -1,6 +1,6 @@
-# XDN Core Web Vitals Analytics
+# Layer0 Core Web Vitals Analytics
 
-The real user monitoring (RUM) client library for [XDN Core Web Vitals Analytics](https://www.moovweb.com/events/real-time-core-web-vitals-analytics), currently in beta.
+The real user monitoring (RUM) client library for [Layer0 Core Web Vitals Analytics](https://layer0.co/events/real-time-core-web-vitals-analytics).
 
 # Releasing a New Version
 

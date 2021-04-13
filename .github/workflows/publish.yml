@@ -34,7 +34,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
         run: npm run release
 
-      - name: 'Deploy to XDN'
+      - name: 'Deploy to Layer0'
         env:
-          XDN_DEPLOY_TOKEN: ${{secrets.XDN_DEPLOY_TOKEN}}
-        run: npm run xdn:deploy
+          LAYER0_DEPLOY_TOKEN: ${{secrets.XDN_DEPLOY_TOKEN}}
+        run: npm run layer0:deploy
