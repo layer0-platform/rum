@@ -1,5 +1,5 @@
 /**
- * Returns an array of element descriptors for the element and each of it's parent's going up to the document element.
+ * Returns an array of element descriptors for the element and each of its parent's going up to the document element.
  * @param element
  * @returns
  */
