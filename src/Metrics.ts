@@ -90,7 +90,7 @@ class BrowserMetrics implements Metrics {
   private pageID: string
   private index: number = 0
   private clientNavigationHasOccurred: boolean = false
-  private xdnEnvironmentID?: string
+  private layer0EnvironmentId?: string
 
   constructor(options: MetricsOptions = {}) {
     this.originalURL = location.href
