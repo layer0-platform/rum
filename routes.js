@@ -1,4 +1,4 @@
-const { Router } = require('@xdn/core/router')
+const { Router } = require('@layer0/core/router')
 
 const TTL = {
   browser: {

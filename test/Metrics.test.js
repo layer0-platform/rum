@@ -24,7 +24,7 @@ describe('Metrics', () => {
 
     beforeEach(() => {
       jest.isolateModules(() => {
-        cookies = { xdn_destination: 'A' }
+        cookies = { layer0_destination: 'A' }
         log = jest.spyOn(console, 'log').mockImplementation()
         warn = jest.spyOn(console, 'warn').mockImplementation()
         mockUserAgent('chrome')
@@ -165,14 +165,15 @@ describe('Metrics', () => {
       })
 
       it('should use server-timing headers', () => {
-        document.cookie = 'xdn_destination=A'
+        document.cookie = 'layer0_destination=A'
 
         const metrics = new Metrics({
           token: 'token',
         })
 
         timing = {
-          'xdn-cache': 'L1-HIT',
+          'layer0-cache': 'L1-HIT',
+          'layer0-deployment-id': 'deployment-1',
           xrj: '{ "path": "/p/:id" }',
           country: 'USA',
         }
@@ -182,6 +183,35 @@ describe('Metrics', () => {
         expect(JSON.parse(metrics.createPayload())).toEqual({
           ...commonParams,
           t: 'token',
+          v: 'deployment-1',
+          ht: 1,
+          c: 'USA',
+          l: '/p/:id',
+          l0: '/p/:id',
+          ct: '4g',
+        })
+      })
+
+      it('should use server-timing headers', () => {
+        document.cookie = 'xdn_destination=A'
+
+        const metrics = new Metrics({
+          token: 'token',
+        })
+
+        timing = {
+          'xdn-cache': 'L1-HIT',
+          'xdn-deployment-id': 'deployment-2',
+          xrj: '{ "path": "/p/:id" }',
+          country: 'USA',
+        }
+
+        window.navigator.connection = { effectiveType: '4g' }
+
+        expect(JSON.parse(metrics.createPayload())).toEqual({
+          ...commonParams,
+          t: 'token',
+          v: 'deployment-2',
           ht: 1,
           c: 'USA',
           l: '/p/:id',
@@ -202,15 +232,6 @@ describe('Metrics', () => {
           l: '/p/:id',
           l0: '/p/:id',
           t: 'token',
-        })
-      })
-
-      it('should get the token from xdn_eid', () => {
-        cookies['xdn_eid'] = 'eid'
-        const metrics = new Metrics()
-        expect(JSON.parse(metrics.createPayload())).toEqual({
-          ...commonParams,
-          t: 'eid',
         })
       })
 
@@ -302,6 +323,24 @@ describe('Metrics', () => {
         expect(log).toHaveBeenCalledWith('[RUM]', 'LCP', 3, expect.any(String))
         expect(log).toHaveBeenCalledWith('[RUM]', 'FID', 1, expect.any(String))
         expect(log).toHaveBeenCalledWith('[RUM]', 'CLS', 2, expect.any(String))
+      })
+    })
+
+    describe('served from xdn', () => {
+      it('should download the xdn cache-manifest', async () => {
+        cookies['xdn_eid'] = 'abc123'
+        await new Metrics({ token: 'token', debug: true }).collect()
+        const scriptEl = document.head.querySelector('script[src="/__xdn__/cache-manifest.js"]')
+        expect(scriptEl).toBeDefined()
+      })
+    })
+
+    describe('served from layer0', () => {
+      it('should download the layer0 cache-manifest', async () => {
+        cookies['layer0_eid'] = 'abc123'
+        await new Metrics({ token: 'token', debug: true }).collect()
+        const scriptEl = document.head.querySelector('script[src="/__layer0__/cache-manifest.js"]')
+        expect(scriptEl).toBeDefined()
       })
     })
 

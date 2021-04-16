@@ -2,16 +2,16 @@
 <html>
   <head>
     <script defer>
-      function sendXdnRum() {
-        new XDN.Metrics({
+      function sendLayer0Rum() {
+        new Layer0.Metrics({
           token: 'moovweb.com',
-          router: new XDN.Router().match('/', ({ setPageLabel }) =>
+          router: new Layer0.Router().match('/', ({ setPageLabel }) =>
             setPageLabel('home')
           ) /* set more page labels like this ... */,
         }).collect()
       }
     </script>
-    <script src="https://rum.moovweb.app/v0.0.1.js" defer onload="sendXdnRum()"></script>
+    <script src="https://rum.layer0.co/v0.0.1.js" defer onload="sendLayer0Rum()"></script>
   </head>
   <body>
     Test

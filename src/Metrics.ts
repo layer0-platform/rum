@@ -18,7 +18,7 @@ try {
 
 export interface MetricsOptions {
   /**
-   * Your XDN RUM site token,
+   * Your Layer0 RUM site token,
    */
   token?: string
   /**
@@ -62,7 +62,7 @@ interface MetricsConstructor {
 
 interface Metrics {
   /**
-   * Collects all metrics and reports them to XDN RUM.
+   * Collects all metrics and reports them to Layer0 RUM.
    */
   collect(): Promise<void>
 }
@@ -71,13 +71,13 @@ interface Metrics {
 declare var Metrics: MetricsConstructor
 
 /**
- * Collects browser performance metrics and sends them to Moovweb RUM.
+ * Collects browser performance metrics and sends them to Layer0 RUM.
  *
  * Example:
  *
  * ```js
  *  new Metrics({
- *    token: 'my-xdn-rum-token', // you can omit this is your site is deployed on the Moovweb XDN
+ *    token: 'my-layer0-rum-token', // you can omit this is your site is deployed on Layer0
  *  }).collect()
  * ```
  */
@@ -90,19 +90,19 @@ class BrowserMetrics implements Metrics {
   private pageID: string
   private index: number = 0
   private clientNavigationHasOccurred: boolean = false
-  private xdnEnvironmentID?: string
+  private layer0EnvironmentID?: string
 
   constructor(options: MetricsOptions = {}) {
     this.originalURL = location.href
     this.options = options
-    this.xdnEnvironmentID = getCookieValue('xdn_eid')
-    this.token = options.token || this.xdnEnvironmentID
+    this.layer0EnvironmentID = getCookieValue('layer0_eid') || getCookieValue('xdn_eid')
+    this.token = options.token || this.layer0EnvironmentID
     this.sendTo = `${this.options.sendTo || DEST_URL}/${this.token}`
     this.pageID = uuid()
     this.metrics = {}
 
     /* istanbul ignore else */
-    if (this.xdnEnvironmentID != null || location.hostname === 'localhost') {
+    if (this.layer0EnvironmentID != null || location.hostname === 'localhost') {
       this.downloadRouteManifest()
     }
   }
@@ -110,7 +110,13 @@ class BrowserMetrics implements Metrics {
   private downloadRouteManifest() {
     const scriptEl = document.createElement('script')
     scriptEl.setAttribute('defer', 'on')
-    scriptEl.setAttribute('src', '/__xdn__/cache-manifest.js')
+
+    if (getCookieValue('layer0_eid')) {
+      scriptEl.setAttribute('src', '/__layer0__/cache-manifest.js')
+    } else {
+      scriptEl.setAttribute('src', '/__xdn__/cache-manifest.js')
+    }
+
     document.head.appendChild(scriptEl)
   }
 
@@ -191,29 +197,20 @@ class BrowserMetrics implements Metrics {
   }
 
   /**
-   * Creates the data payload reported to Moovweb RUM
+   * Creates the data payload reported to Layer0 RUM
    */
   private createPayload() {
     const timing = getServerTiming()
-    const xdnRoutes = timing['xrj']
+    const layer0Routes = timing['xrj']
     let pageLabel = this.options.pageLabel || this.options.router?.getPageLabel(this.originalURL)
 
-    if (!pageLabel && xdnRoutes) {
+    if (!pageLabel && layer0Routes) {
       try {
-        const routes = JSON.parse(xdnRoutes)
+        const routes = JSON.parse(layer0Routes)
         pageLabel = routes.path
       } catch (e) {
-        pageLabel = xdnRoutes
+        pageLabel = layer0Routes
       }
-    }
-
-    const isCacheHit = () => {
-      if (this.options.cacheHit != null) {
-        return this.options.cacheHit ? 1 : 0
-      }
-      const xdnCache = timing['xdn-cache']
-      if (xdnCache?.includes('HIT')) return 1
-      return xdnCache?.includes('MISS') ? 0 : null
     }
 
     const data: any = {
@@ -225,13 +222,13 @@ class BrowserMetrics implements Metrics {
       pid: this.pageID,
       t: this.token,
       ti: document.title,
-      d: this.options.splitTestVariant || getCookieValue('xdn_destination'),
+      d: this.getSplitTestVariant(),
       ua: navigator.userAgent,
       w: window.screen.width,
       h: window.screen.height,
-      v: this.options.appVersion || timing['xdn-deployment-id'],
+      v: this.getAppVersion(timing),
       cv: rumClientVersion,
-      ht: isCacheHit(),
+      ht: this.isCacheHit(timing),
       l: pageLabel, // for backwards compatibility
       l0: pageLabel,
       lx: this.getCurrentPageLabel(),
@@ -250,20 +247,41 @@ class BrowserMetrics implements Metrics {
     return JSON.stringify(data)
   }
 
+  getAppVersion(timing: any) {
+    return this.options.appVersion || timing['layer0-deployment-id'] || timing['xdn-deployment-id']
+  }
+
+  getSplitTestVariant() {
+    return (
+      this.options.splitTestVariant ||
+      getCookieValue('layer0_destination') ||
+      getCookieValue('xdn_destination')
+    )
+  }
+
+  isCacheHit(timing: any) {
+    if (this.options.cacheHit != null) {
+      return this.options.cacheHit ? 1 : 0
+    }
+    const cache = timing['layer0-cache'] || timing['xdn-cache']
+    if (cache?.includes('HIT')) return 1
+    return cache?.includes('MISS') ? 0 : null
+  }
+
   /**
    * Returns the page label for the current page using the router specified in options,
    * or, if no router is specified, matches the current URL path to the correct route
-   * using the XDN cache manifest.
+   * using the Layer0 cache manifest.
    * @returns
    */
   private getCurrentPageLabel() {
     // @ts-ignore
-    const { __XDN_CACHE_MANIFEST__ } = window
+    const manifest = window.__LAYER0_CACHE_MANIFEST__ || window.__XDN_CACHE_MANIFEST__
 
     if (this.options.router) {
       return this.options.router.getPageLabel(location.href)
-    } else if (__XDN_CACHE_MANIFEST__) {
-      const matchingRoute = __XDN_CACHE_MANIFEST__.find(
+    } else if (manifest) {
+      const matchingRoute = manifest.find(
         (entry: any) =>
           entry.returnsResponse &&
           entry.route &&
