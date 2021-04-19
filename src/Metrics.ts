@@ -82,7 +82,7 @@ declare var Metrics: MetricsConstructor
  * ```
  */
 class BrowserMetrics implements Metrics {
-  private metrics: { [name: string]: number | string | undefined }
+  private metrics: { [name: string]: number | string[] | undefined }
   private token?: string
   private options: MetricsOptions
   private sendTo: string
@@ -99,7 +99,7 @@ class BrowserMetrics implements Metrics {
     this.token = options.token || this.layer0EnvironmentID
     this.sendTo = `${this.options.sendTo || DEST_URL}/${this.token}`
     this.pageID = uuid()
-    this.metrics = {}
+    this.flushMetrics()
 
     /* istanbul ignore else */
     if (this.layer0EnvironmentID != null || location.hostname === 'localhost') {
@@ -135,6 +135,10 @@ class BrowserMetrics implements Metrics {
     }
   }
 
+  private flushMetrics() {
+    this.metrics = { clsel: [] }
+  }
+
   /**
    * Returns a promise that resolves once the specified metric has been collected.
    * @param getMetric
@@ -165,9 +169,9 @@ class BrowserMetrics implements Metrics {
               // @ts-ignore The typings appear to be wrong here - sources contains the elements causing the CLS
               const sources: any[] = metric.entries[metric.entries.length - 1].sources
 
-              this.metrics.clsel = sources
-                .map(el => getSelectorForElement(el.node).join(' > '))
-                .join(', ')
+              this.metrics.clsel.push(
+                sources.map(el => getSelectorForElement(el.node).join(' > ')).join(', ')
+              )
             } catch (e) {
               // don't fail to report if generating a descriptor fails for some reason
               /* istanbul ignore next */
@@ -242,7 +246,7 @@ class BrowserMetrics implements Metrics {
       console.debug('could not obtain navigator.connection metrics')
     }
 
-    this.metrics = {}
+    this.flushMetrics()
 
     return JSON.stringify(data)
   }
