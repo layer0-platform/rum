@@ -16,6 +16,7 @@ const commonParams = {
   i: 0,
   pid: expect.any(String),
   ht: null,
+  clsel: [],
 }
 
 describe('Metrics', () => {
@@ -114,7 +115,7 @@ describe('Metrics', () => {
             lcp: 3,
             ttfb: 4,
             lx: '/',
-            clsel: 'body',
+            clsel: ['body'],
             t: 'token',
           })
         } finally {
@@ -154,7 +155,7 @@ describe('Metrics', () => {
             fid: 1,
             lcp: 3,
             ttfb: 4,
-            clsel: 'body',
+            clsel: ['body'],
             t: 'token',
           })
         } finally {
