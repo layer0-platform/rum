@@ -7,22 +7,22 @@ export default function getSelectorForElement(element: HTMLElement | null): stri
   if (element === document.documentElement || element == null) {
     return []
   } else {
-    let selector = element.localName
-
     // add id if present
     const id = element.getAttribute('id')
 
     if (id) {
-      selector += `#${id}`
+      // if the element has an ID, we can assume it's unique and not continue walking up the DOM tree
+      return [`#${id}`]
+    } else {
+      let selector = element.localName
+
+      // add css classes if present
+      const { classList } = element
+
+      if (classList.length) {
+        selector += '.' + Array.from(classList.values()).join('.')
+      }
+      return [...getSelectorForElement(element.parentElement), selector]
     }
-
-    // add css classes if present
-    const { classList } = element
-
-    if (classList.length) {
-      selector += '.' + Array.from(classList.values()).join('.')
-    }
-
-    return [...getSelectorForElement(element.parentElement), selector]
   }
 }

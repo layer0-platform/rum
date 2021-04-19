@@ -16,11 +16,6 @@ describe('getSelectorForElement', () => {
   })
 
   it('should generate a selector using ids and classes', () => {
-    expect(getSelectorForElement(childWithClass)).toEqual([
-      'body',
-      'main',
-      'div#child',
-      'p.class1.class2',
-    ])
+    expect(getSelectorForElement(childWithClass)).toEqual(['#child', 'p.class1.class2'])
   })
 })
