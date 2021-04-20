@@ -99,7 +99,7 @@ class BrowserMetrics implements Metrics {
     this.token = options.token || this.layer0EnvironmentID
     this.sendTo = `${this.options.sendTo || DEST_URL}/${this.token}`
     this.pageID = uuid()
-    this.flushMetrics()
+    this.metrics = this.flushMetrics()
 
     /* istanbul ignore else */
     if (this.layer0EnvironmentID != null || location.hostname === 'localhost') {
@@ -136,7 +136,7 @@ class BrowserMetrics implements Metrics {
   }
 
   private flushMetrics() {
-    this.metrics = { clsel: [] }
+    return { clsel: [] }
   }
 
   /**
@@ -169,6 +169,7 @@ class BrowserMetrics implements Metrics {
               // @ts-ignore The typings appear to be wrong here - sources contains the elements causing the CLS
               const sources: any[] = metric.entries[metric.entries.length - 1].sources
 
+              // @ts-ignore this.metrics.clsel is always initialized to an empty array
               this.metrics.clsel.push(
                 sources.map(el => getSelectorForElement(el.node).join(' > ')).join(', ')
               )
@@ -246,7 +247,7 @@ class BrowserMetrics implements Metrics {
       console.debug('could not obtain navigator.connection metrics')
     }
 
-    this.flushMetrics()
+    this.metrics = this.flushMetrics()
 
     return JSON.stringify(data)
   }
