@@ -296,7 +296,7 @@ class BrowserMetrics implements Metrics {
   }
 
   /**
-   * Sends all collected metrics to Moovweb RUM.
+   * Sends all collected metrics to Layer0 RUM.
    */
   send = debounce(() => {
     const body = this.createPayload()
