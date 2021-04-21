@@ -56,6 +56,7 @@ describe('cdn', () => {
       l: 'home',
       l0: 'home',
       lx: 'home',
+      clsel: [],
     })
 
     expect(fetch.mock.calls.length).toBe(1)

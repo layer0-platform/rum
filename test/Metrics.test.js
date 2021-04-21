@@ -16,6 +16,7 @@ const commonParams = {
   i: 0,
   pid: expect.any(String),
   ht: null,
+  clsel: [],
 }
 
 describe('Metrics', () => {
@@ -80,6 +81,88 @@ describe('Metrics', () => {
           lx: 'home',
           t: 'token',
         })
+      })
+
+      it('should fall back to using the XDN cache manifest if present to determine the label', async () => {
+        window.__XDN_CACHE_MANIFEST__ = [
+          { route: '^.*$', criteriaPath: '/all', returnsResponse: false },
+          { route: '^/help$', criteriaPath: '/help', returnsResponse: true },
+          { route: '^/$', criteriaPath: '/', returnsResponse: true },
+        ]
+
+        webVitalsMock.setClsDelta(0.1)
+
+        webVitalsMock.setClsEntries([
+          {
+            sources: [
+              {
+                node: document.body,
+              },
+            ],
+          },
+        ])
+
+        try {
+          const metrics = new Metrics({
+            token: 'token',
+          })
+          await metrics.collect()
+          expect(JSON.parse(metrics.createPayload())).toEqual({
+            ...commonParams,
+            cls: 2,
+            fcp: 5,
+            fid: 1,
+            lcp: 3,
+            ttfb: 4,
+            lx: '/',
+            clsel: ['body'],
+            t: 'token',
+          })
+        } finally {
+          delete window.__XDN_CACHE_MANIFEST__
+          webVitalsMock.setClsEntries([])
+          webVitalsMock.setClsDelta(0)
+        }
+      })
+
+      it('should not report lx if no route is matched', async () => {
+        window.__XDN_CACHE_MANIFEST__ = [
+          { route: '^.*$', criteriaPath: '/all', returnsResponse: false },
+          { route: '^/help$', criteriaPath: '/help', returnsResponse: true },
+        ]
+
+        webVitalsMock.setClsDelta(0.1)
+
+        webVitalsMock.setClsEntries([
+          {
+            sources: [
+              {
+                node: document.body,
+              },
+            ],
+          },
+        ])
+
+        try {
+          const metrics = new Metrics({
+            token: 'token',
+          })
+          await metrics.collect()
+          expect(JSON.parse(metrics.createPayload())).toEqual({
+            ...commonParams,
+            cls: 2,
+            fcp: 5,
+            fid: 1,
+            lcp: 3,
+            ttfb: 4,
+            clsel: ['body'],
+            t: 'token',
+          })
+        } finally {
+          delete window.__XDN_CACHE_MANIFEST__
+          webVitalsMock.setClsEntries([])
+          webVitalsMock.setClsDelta(0)
+        }
       })
 
       it('should use server-timing headers', () => {
@@ -241,6 +324,24 @@ describe('Metrics', () => {
         expect(log).toHaveBeenCalledWith('[RUM]', 'LCP', 3, expect.any(String))
         expect(log).toHaveBeenCalledWith('[RUM]', 'FID', 1, expect.any(String))
         expect(log).toHaveBeenCalledWith('[RUM]', 'CLS', 2, expect.any(String))
+      })
+    })
+
+    describe('served from xdn', () => {
+      it('should download the xdn cache-manifest', async () => {
+        cookies['xdn_eid'] = 'abc123'
+        await new Metrics({ token: 'token', debug: true }).collect()
+        const scriptEl = document.head.querySelector('script[src="/__xdn__/cache-manifest.js"]')
+        expect(scriptEl).toBeDefined()
+      })
+    })
+
+    describe('served from layer0', () => {
+      it('should download the layer0 cache-manifest', async () => {
+        cookies['layer0_eid'] = 'abc123'
+        await new Metrics({ token: 'token', debug: true }).collect()
+        const scriptEl = document.head.querySelector('script[src="/__layer0__/cache-manifest.js"]')
+        expect(scriptEl).toBeDefined()
       })
     })
 

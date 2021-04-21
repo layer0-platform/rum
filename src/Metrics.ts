@@ -6,6 +6,7 @@ import isChrome from './isChrome'
 import Router from './Router'
 import uuid from './uuid'
 import debounce from 'lodash.debounce'
+import getSelectorForElement from './getSelectorForElement'
 
 let rumClientVersion: string
 
@@ -81,7 +82,7 @@ declare var Metrics: MetricsConstructor
  * ```
  */
 class BrowserMetrics implements Metrics {
-  private metrics: { [name: string]: number | undefined } = {}
+  private metrics: { [name: string]: number | string[] | undefined }
   private token?: string
   private options: MetricsOptions
   private sendTo: string
@@ -89,13 +90,34 @@ class BrowserMetrics implements Metrics {
   private pageID: string
   private index: number = 0
   private clientNavigationHasOccurred: boolean = false
+  private layer0EnvironmentID?: string
 
   constructor(options: MetricsOptions = {}) {
     this.originalURL = location.href
     this.options = options
-    this.token = options.token
+    this.layer0EnvironmentID = getCookieValue('layer0_eid') || getCookieValue('xdn_eid')
+    this.token = options.token || this.layer0EnvironmentID
     this.sendTo = `${this.options.sendTo || DEST_URL}/${this.token}`
     this.pageID = uuid()
+    this.metrics = this.flushMetrics()
+
+    /* istanbul ignore else */
+    if (this.layer0EnvironmentID != null || location.hostname === 'localhost') {
+      this.downloadRouteManifest()
+    }
+  }
+
+  private downloadRouteManifest() {
+    const scriptEl = document.createElement('script')
+    scriptEl.setAttribute('defer', 'on')
+
+    if (getCookieValue('layer0_eid')) {
+      scriptEl.setAttribute('src', '/__layer0__/cache-manifest.js')
+    } else {
+      scriptEl.setAttribute('src', '/__xdn__/cache-manifest.js')
+    }
+
+    document.head.appendChild(scriptEl)
   }
 
   collect() {
@@ -111,6 +133,10 @@ class BrowserMetrics implements Metrics {
     } else {
       return Promise.resolve()
     }
+  }
+
+  private flushMetrics() {
+    return { clsel: [] }
   }
 
   /**
@@ -131,9 +157,28 @@ class BrowserMetrics implements Metrics {
           this.clientNavigationHasOccurred = this.originalURL !== location.href
         }
 
-        // record the CLS delta as incremental layout shift if a client side navigation has occurred
-        if (metric.name === 'CLS' && this.clientNavigationHasOccurred) {
-          this.metrics.ils = metric.delta
+        if (metric.name === 'CLS') {
+          // record the CLS delta as incremental layout shift if a client side navigation has occurred
+          if (this.clientNavigationHasOccurred) {
+            this.metrics.ils = metric.delta
+          }
+
+          // record the element that shifted
+          if (metric.entries?.length) {
+            try {
+              // @ts-ignore The typings appear to be wrong here - sources contains the elements causing the CLS
+              const sources: any[] = metric.entries[metric.entries.length - 1].sources
+
+              // @ts-ignore this.metrics.clsel is always initialized to an empty array
+              this.metrics.clsel.push(
+                sources.map(el => getSelectorForElement(el.node).join(' > ')).join(', ')
+              )
+            } catch (e) {
+              // don't fail to report if generating a descriptor fails for some reason
+              /* istanbul ignore next */
+              console.error(e)
+            }
+          }
         }
 
         if (this.options.debug) {
@@ -191,7 +236,7 @@ class BrowserMetrics implements Metrics {
       ht: this.isCacheHit(timing),
       l: pageLabel, // for backwards compatibility
       l0: pageLabel,
-      lx: this.options.router?.getPageLabel(location.href),
+      lx: this.getCurrentPageLabel(),
       c: this.options.country || timing['country'],
     }
 
@@ -201,6 +246,8 @@ class BrowserMetrics implements Metrics {
     } catch (e) {
       console.debug('could not obtain navigator.connection metrics')
     }
+
+    this.metrics = this.flushMetrics()
 
     return JSON.stringify(data)
   }
@@ -221,9 +268,32 @@ class BrowserMetrics implements Metrics {
     if (this.options.cacheHit != null) {
       return this.options.cacheHit ? 1 : 0
     }
-    const xdnCache = timing['layer0-cache'] || timing['xdn-cache']
-    if (xdnCache?.includes('HIT')) return 1
-    return xdnCache?.includes('MISS') ? 0 : null
+    const cache = timing['layer0-cache'] || timing['xdn-cache']
+    if (cache?.includes('HIT')) return 1
+    return cache?.includes('MISS') ? 0 : null
+  }
+
+  /**
+   * Returns the page label for the current page using the router specified in options,
+   * or, if no router is specified, matches the current URL path to the correct route
+   * using the Layer0 cache manifest.
+   * @returns
+   */
+  private getCurrentPageLabel() {
+    // @ts-ignore
+    const manifest = window.__LAYER0_CACHE_MANIFEST__ || window.__XDN_CACHE_MANIFEST__
+
+    if (this.options.router) {
+      return this.options.router.getPageLabel(location.href)
+    } else if (manifest) {
+      const matchingRoute = manifest.find(
+        (entry: any) =>
+          entry.returnsResponse &&
+          entry.route &&
+          new RegExp(entry.route, 'i').test(location.pathname)
+      )
+      return matchingRoute?.criteriaPath
+    }
   }
 
   /**
@@ -244,7 +314,6 @@ class BrowserMetrics implements Metrics {
       fetch(this.sendTo, { body, method: 'POST', keepalive: true })
     }
 
-    this.metrics = {}
     this.index++
   }, SEND_DELAY)
 }
