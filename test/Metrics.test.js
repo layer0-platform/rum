@@ -133,11 +133,17 @@ describe('Metrics', () => {
 
         webVitalsMock.setClsDelta(0.1)
 
+        document.body.innerHTML =
+          '<div id="some-element-1">Test</div><div id="some-element-2">Test</div>'
+
         webVitalsMock.setClsEntries([
           {
             sources: [
               {
-                node: document.body,
+                node: document.querySelector('#some-element-1'),
+              },
+              {
+                node: document.querySelector('#some-element-2'),
               },
             ],
           },
@@ -155,7 +161,7 @@ describe('Metrics', () => {
             fid: 1,
             lcp: 3,
             ttfb: 4,
-            clsel: ['body'],
+            clsel: ['#some-element-1'],
             t: 'token',
           })
         } finally {

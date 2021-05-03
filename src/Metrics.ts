@@ -166,13 +166,13 @@ class BrowserMetrics implements Metrics {
           // record the element that shifted
           if (metric.entries?.length) {
             try {
+              // Depending on the DOM layout, there can be MANY elements that shift during each CLS event.
+              // To save on logging costs we only send the first.
               // @ts-ignore The typings appear to be wrong here - sources contains the elements causing the CLS
-              const sources: any[] = metric.entries[metric.entries.length - 1].sources
+              const source: any = metric.entries[metric.entries.length - 1].sources[0]
 
               // @ts-ignore this.metrics.clsel is always initialized to an empty array
-              this.metrics.clsel.push(
-                sources.map(el => getSelectorForElement(el.node).join(' > ')).join(', ')
-              )
+              this.metrics.clsel.push(getSelectorForElement(source.node).join(' > '))
             } catch (e) {
               // don't fail to report if generating a descriptor fails for some reason
               /* istanbul ignore next */
