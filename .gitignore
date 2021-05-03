@@ -107,3 +107,6 @@ cdn
 .DS_Store
 
 .layer0
+
+.yalc
+yalc.lock
