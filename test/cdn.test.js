@@ -3,6 +3,8 @@ import { DEST_URL, SEND_DELAY } from '../src/constants'
 import { clear, mockUserAgent } from 'jest-useragent-mock'
 import sleep from './utils/sleep'
 
+const validToken = "12345678-1234-abcd-ef00-1234567890ab"
+
 describe('cdn', () => {
   let timing
 
@@ -26,14 +28,14 @@ describe('cdn', () => {
     require('../src/cdn')
 
     await new Layer0.Metrics({
-      token: 'token',
+      token: validToken,
       router: new Layer0.Router().match('/', ({ setPageLabel }) => setPageLabel('home')),
     }).collect()
 
     await sleep(SEND_DELAY + 20)
 
     const [url, options] = Array.from(fetch.mock.calls[0])
-    expect(url).toBe(`${DEST_URL}/token`)
+    expect(url).toBe(`${DEST_URL}/${validToken}`)
 
     expect(JSON.parse(options.body)).toEqual({
       lcp: 3,
@@ -46,7 +48,7 @@ describe('cdn', () => {
       cn: 0,
       ux: 'http://localhost/',
       pid: expect.any(String),
-      t: 'token',
+      t: validToken,
       ti: 'Home',
       ua: 'chrome',
       w: 0,
