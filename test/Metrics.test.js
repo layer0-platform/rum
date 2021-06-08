@@ -3,6 +3,8 @@ import Router from '../src/Router'
 import { clear, mockUserAgent } from 'jest-useragent-mock'
 import sleep from './utils/sleep'
 
+const validToken = "12345678-1234-abcd-ef00-1234567890ab"
+
 const commonParams = {
   d: 'A',
   ti: 'Home',
@@ -47,7 +49,7 @@ describe('Metrics', () => {
     describe('createPayload', () => {
       it('should use the specified options', () => {
         const metrics = new Metrics({
-          token: 'token',
+          token: validToken,
           pageLabel: 'product',
           country: 'USA',
           appVersion: 'v1',
@@ -56,7 +58,7 @@ describe('Metrics', () => {
 
         expect(JSON.parse(metrics.createPayload())).toEqual({
           ...commonParams,
-          t: 'token',
+          t: validToken,
           l: 'product',
           l0: 'product',
           c: 'USA',
@@ -67,7 +69,7 @@ describe('Metrics', () => {
 
       it('should use the router to determine the pageLabel', () => {
         const metrics = new Metrics({
-          token: 'token',
+          token: validToken,
           router: new Router()
             .match('/', ({ setPageLabel }) => setPageLabel('home'))
             .match('/products/:id', ({ setPageLabel }) => setPageLabel('product'))
@@ -79,7 +81,7 @@ describe('Metrics', () => {
           l: 'home',
           l0: 'home',
           lx: 'home',
-          t: 'token',
+          t: validToken,
         })
       })
 
@@ -104,7 +106,7 @@ describe('Metrics', () => {
 
         try {
           const metrics = new Metrics({
-            token: 'token',
+            token: validToken,
           })
           await metrics.collect()
           expect(JSON.parse(metrics.createPayload())).toEqual({
@@ -116,7 +118,7 @@ describe('Metrics', () => {
             ttfb: 4,
             lx: '/',
             clsel: ['body'],
-            t: 'token',
+            t: validToken,
           })
         } finally {
           delete window.__XDN_CACHE_MANIFEST__
@@ -151,7 +153,7 @@ describe('Metrics', () => {
 
         try {
           const metrics = new Metrics({
-            token: 'token',
+            token: validToken,
           })
           await metrics.collect()
           expect(JSON.parse(metrics.createPayload())).toEqual({
@@ -162,7 +164,7 @@ describe('Metrics', () => {
             lcp: 3,
             ttfb: 4,
             clsel: ['#some-element-1'],
-            t: 'token',
+            t: validToken,
           })
         } finally {
           delete window.__XDN_CACHE_MANIFEST__
@@ -175,7 +177,7 @@ describe('Metrics', () => {
         document.cookie = 'layer0_destination=A'
 
         const metrics = new Metrics({
-          token: 'token',
+          token: validToken,
         })
 
         timing = {
@@ -189,7 +191,7 @@ describe('Metrics', () => {
 
         expect(JSON.parse(metrics.createPayload())).toEqual({
           ...commonParams,
-          t: 'token',
+          t: validToken,
           v: 'deployment-1',
           ht: 1,
           c: 'USA',
@@ -203,7 +205,7 @@ describe('Metrics', () => {
         document.cookie = 'xdn_destination=A'
 
         const metrics = new Metrics({
-          token: 'token',
+          token: validToken,
         })
 
         timing = {
@@ -217,7 +219,7 @@ describe('Metrics', () => {
 
         expect(JSON.parse(metrics.createPayload())).toEqual({
           ...commonParams,
-          t: 'token',
+          t: validToken,
           v: 'deployment-2',
           ht: 1,
           c: 'USA',
@@ -232,13 +234,13 @@ describe('Metrics', () => {
           xrj: '/p/:id',
         }
 
-        const metrics = new Metrics({ token: 'token' })
+        const metrics = new Metrics({ token: validToken })
 
         expect(JSON.parse(metrics.createPayload())).toEqual({
           ...commonParams,
           l: '/p/:id',
           l0: '/p/:id',
-          t: 'token',
+          t: validToken,
         })
       })
 
@@ -289,27 +291,27 @@ describe('Metrics', () => {
 
       it('should use sendBeacon when available', async () => {
         const sendBeacon = (window.navigator.sendBeacon = jest.fn())
-        new Metrics({ token: 'token' }).send()
+        new Metrics({ token: validToken }).send()
         await sleep(SEND_DELAY)
         expect(sendBeacon).toHaveBeenCalled()
         const [url, body] = sendBeacon.mock.calls[0]
-        expect(url).toBe(`${DEST_URL}/token`)
+        expect(url).toBe(`${DEST_URL}/${validToken}`)
         expect(JSON.parse(body)).toEqual({
           ...commonParams,
-          t: 'token',
+          t: validToken,
         })
       })
 
       it('should use fetch when sendBeacon is not available', async () => {
         const fetch = (window.fetch = jest.fn())
-        new Metrics({ token: 'token' }).send()
+        new Metrics({ token: validToken }).send()
         await sleep(SEND_DELAY)
         expect(fetch).toHaveBeenCalled()
         const [url, options] = fetch.mock.calls[0]
-        expect(url).toBe(`${DEST_URL}/token`)
+        expect(url).toBe(`${DEST_URL}/${validToken}`)
         expect(JSON.parse(options.body)).toEqual({
           ...commonParams,
-          t: 'token',
+          t: validToken,
         })
       })
 
@@ -322,11 +324,21 @@ describe('Metrics', () => {
         )
         expect(fetch).not.toHaveBeenCalled()
       })
+      it('should warn if a token is not valid', async () => {
+        const fetch = (window.fetch = jest.fn())
+        const badToken = validToken + '1'
+        await new Metrics({token: badToken }).send()
+        await sleep(SEND_DELAY + 20)
+        expect(warn).toHaveBeenCalledWith(
+          `[RUM] Not sending rum entry because a token "${badToken}" is not valid.`
+        )
+        expect(fetch).not.toHaveBeenCalled()
+      })
     })
 
     describe('debug', () => {
       it('should log collected metrics', async () => {
-        await new Metrics({ token: 'token', debug: true }).collect()
+        await new Metrics({ token: validToken, debug: true }).collect()
         expect(log).toHaveBeenCalledWith('[RUM]', 'LCP', 3, expect.any(String))
         expect(log).toHaveBeenCalledWith('[RUM]', 'FID', 1, expect.any(String))
         expect(log).toHaveBeenCalledWith('[RUM]', 'CLS', 2, expect.any(String))
@@ -336,7 +348,7 @@ describe('Metrics', () => {
     describe('served from xdn', () => {
       it('should download the xdn cache-manifest', async () => {
         cookies['xdn_eid'] = 'abc123'
-        await new Metrics({ token: 'token', debug: true }).collect()
+        await new Metrics({ token: validToken, debug: true }).collect()
         const scriptEl = document.head.querySelector('script[src="/__xdn__/cache-manifest.js"]')
         expect(scriptEl).toBeDefined()
       })
@@ -345,7 +357,7 @@ describe('Metrics', () => {
     describe('served from layer0', () => {
       it('should download the layer0 cache-manifest', async () => {
         cookies['layer0_eid'] = 'abc123'
-        await new Metrics({ token: 'token', debug: true }).collect()
+        await new Metrics({ token: validToken, debug: true }).collect()
         const scriptEl = document.head.querySelector('script[src="/__layer0__/cache-manifest.js"]')
         expect(scriptEl).toBeDefined()
       })
@@ -356,7 +368,7 @@ describe('Metrics', () => {
 
       beforeEach(() => {
         fetch = window.fetch = jest.fn()
-        metrics = new Metrics({ token: 'token' })
+        metrics = new Metrics({ token: validToken })
       })
 
       it('should send LCP, FID, and CLS', async () => {
@@ -364,7 +376,7 @@ describe('Metrics', () => {
         await sleep(SEND_DELAY + 10)
         const [url, options] = Array.from(fetch.mock.calls[0])
 
-        expect(url).toBe(`${DEST_URL}/token`)
+        expect(url).toBe(`${DEST_URL}/${validToken}`)
 
         expect(JSON.parse(options.body)).toEqual({
           ...commonParams,
@@ -373,7 +385,7 @@ describe('Metrics', () => {
           cls: 2,
           fcp: 5,
           fid: 1,
-          t: 'token',
+          t: validToken,
         })
       })
 
@@ -389,7 +401,7 @@ describe('Metrics', () => {
         await sleep(SEND_DELAY + 20)
         const [url, options] = Array.from(fetch.mock.calls[0])
 
-        expect(url).toBe(`${DEST_URL}/token`)
+        expect(url).toBe(`${DEST_URL}/${validToken}`)
 
         expect(JSON.parse(options.body)).toEqual({
           ...commonParams,
@@ -397,7 +409,7 @@ describe('Metrics', () => {
           ttfb: 4,
           fcp: 5,
           fid: 1,
-          t: 'token',
+          t: validToken,
         })
       })
 
@@ -408,11 +420,11 @@ describe('Metrics', () => {
         await sleep(SEND_DELAY + 20)
         const [url, options] = Array.from(fetch.mock.calls[0])
 
-        expect(url).toBe(`${DEST_URL}/token`)
+        expect(url).toBe(`${DEST_URL}/${validToken}`)
 
         expect(JSON.parse(options.body)).toEqual({
           ...commonParams,
-          t: 'token',
+          t: validToken,
           lcp: 3,
           ttfb: 4,
           fcp: 5,

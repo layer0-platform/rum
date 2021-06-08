@@ -307,6 +307,11 @@ class BrowserMetrics implements Metrics {
       return
     }
 
+    if (!this.token.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)) {
+      console.warn(`[RUM] Not sending rum entry because a token "${this.token}" is not valid.`)
+      return
+    }
+
     if (navigator.sendBeacon) {
       // Use `navigator.sendBeacon()` if available, falling back to `fetch()`.
       navigator.sendBeacon(this.sendTo, body)
