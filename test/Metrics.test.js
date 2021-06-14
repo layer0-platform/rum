@@ -204,6 +204,9 @@ describe('Metrics', () => {
       it('should use server-timing headers', () => {
         document.cookie = 'xdn_destination=A'
 
+        // Try adding connection before the constructor for full code coverage
+        window.navigator.connection = { effectiveType: '4g' }
+
         const metrics = new Metrics({
           token: validToken,
         })
@@ -214,8 +217,6 @@ describe('Metrics', () => {
           xrj: '{ "path": "/p/:id" }',
           country: 'USA',
         }
-
-        window.navigator.connection = { effectiveType: '4g' }
 
         expect(JSON.parse(metrics.createPayload())).toEqual({
           ...commonParams,

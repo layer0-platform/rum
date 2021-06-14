@@ -91,6 +91,8 @@ class BrowserMetrics implements Metrics {
   private index: number = 0
   private clientNavigationHasOccurred: boolean = false
   private layer0EnvironmentID?: string
+  private splitTestVariant?: string
+  private connectionType?:  string
 
   constructor(options: MetricsOptions = {}) {
     this.originalURL = location.href
@@ -100,6 +102,14 @@ class BrowserMetrics implements Metrics {
     this.sendTo = `${this.options.sendTo || DEST_URL}/${this.token}`
     this.pageID = uuid()
     this.metrics = this.flushMetrics()
+    this.splitTestVariant = this.getSplitTestVariant()
+    try {
+      // @ts-ignore
+      this.connectionType = navigator.connection.effectiveType
+    } catch (e) {
+      console.debug('could not obtain navigator.connection metrics')
+    }
+
 
     /* istanbul ignore else */
     if (this.layer0EnvironmentID != null || location.hostname === 'localhost') {
@@ -218,6 +228,19 @@ class BrowserMetrics implements Metrics {
       }
     }
 
+    if (!this.splitTestVariant) {
+      this.splitTestVariant = this.getSplitTestVariant()
+    }
+
+    if (!this.connectionType) {
+      try {
+        // @ts-ignore
+        this.connectionType = navigator.connection.effectiveType
+      } catch (e) {
+        console.debug('could not obtain navigator.connection metrics')
+      }
+    }
+
     const data: any = {
       ...this.metrics,
       i: this.index,
@@ -227,7 +250,7 @@ class BrowserMetrics implements Metrics {
       pid: this.pageID,
       t: this.token,
       ti: document.title,
-      d: this.getSplitTestVariant(),
+      d: this.splitTestVariant,
       ua: navigator.userAgent,
       w: window.screen.width,
       h: window.screen.height,
@@ -238,13 +261,7 @@ class BrowserMetrics implements Metrics {
       l0: pageLabel,
       lx: this.getCurrentPageLabel(),
       c: this.options.country || timing['country'],
-    }
-
-    try {
-      // @ts-ignore
-      data.ct = navigator.connection.effectiveType
-    } catch (e) {
-      console.debug('could not obtain navigator.connection metrics')
+      ct: this.connectionType,
     }
 
     this.metrics = this.flushMetrics()
