@@ -128,6 +128,7 @@ describe('Metrics', () => {
       })
 
       it('should not report lx if no route is matched', async () => {
+        fetch = window.fetch = jest.fn()
         window.__XDN_CACHE_MANIFEST__ = [
           { route: '^.*$', criteriaPath: '/all', returnsResponse: false },
           { route: '^/help$', criteriaPath: '/help', returnsResponse: true },
