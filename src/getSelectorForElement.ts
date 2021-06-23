@@ -4,7 +4,7 @@
  * @returns
  */
 export default function getSelectorForElement(element: HTMLElement | null): string[] {
-  if (element === document.documentElement || element == null) {
+  if (element === document.documentElement || element == null || typeof element.getAttribute !== 'function') {
     return []
   } else {
     // add id if present
