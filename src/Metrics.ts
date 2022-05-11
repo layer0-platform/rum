@@ -262,6 +262,7 @@ class BrowserMetrics implements Metrics {
       lx: this.getCurrentPageLabel(),
       c: this.options.country || timing['country'],
       ct: this.connectionType,
+      epop: timing['edge_pop'],
     }
 
     this.metrics = this.flushMetrics()
