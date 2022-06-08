@@ -1,6 +1,6 @@
 {
   "name": "@layer0/rum",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "license": "UNLICENSED",
   "dependencies": {
     "lodash.debounce": "^4.0.8",
