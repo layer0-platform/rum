@@ -1,4 +1,4 @@
-const { Router } = require('@layer0/core/router')
+const { Router } = require('@edgio/core/router')
 
 const TTL = {
   browser: {
