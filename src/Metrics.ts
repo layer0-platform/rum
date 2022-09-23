@@ -18,7 +18,7 @@ try {
 
 export interface MetricsOptions {
   /**
-   * Your Layer0 RUM site token,
+   * Your Edgio RUM site token,
    */
   token?: string
   /**
@@ -62,7 +62,7 @@ interface MetricsConstructor {
 
 interface Metrics {
   /**
-   * Collects all metrics and reports them to Layer0 RUM.
+   * Collects all metrics and reports them to Edgio RUM.
    */
   collect(): Promise<void>
 }
@@ -71,13 +71,13 @@ interface Metrics {
 declare var Metrics: MetricsConstructor
 
 /**
- * Collects browser performance metrics and sends them to Layer0 RUM.
+ * Collects browser performance metrics and sends them to Edgio RUM.
  *
  * Example:
  *
  * ```js
  *  new Metrics({
- *    token: 'my-layer0-rum-token', // you can omit this is your site is deployed on Layer0
+ *    token: 'my-edgio-rum-token', // you can omit this is your site is deployed on Edgio
  *  }).collect()
  * ```
  */
@@ -90,15 +90,15 @@ class BrowserMetrics implements Metrics {
   private pageID: string
   private index: number = 0
   private clientNavigationHasOccurred: boolean = false
-  private layer0EnvironmentID?: string
+  private edgioEnvironmentID?: string
   private splitTestVariant?: string
   private connectionType?:  string
 
   constructor(options: MetricsOptions = {}) {
     this.originalURL = location.href
     this.options = options
-    this.layer0EnvironmentID = getCookieValue('layer0_eid') || getCookieValue('xdn_eid')
-    this.token = options.token || this.layer0EnvironmentID
+    this.edgioEnvironmentID = getCookieValue('edgio_eid') || getCookieValue('layer0_eid') || getCookieValue('xdn_eid')
+    this.token = options.token || this.edgioEnvironmentID
     this.sendTo = `${this.options.sendTo || DEST_URL}/${this.token}`
     this.pageID = uuid()
     this.metrics = this.flushMetrics()
@@ -112,7 +112,7 @@ class BrowserMetrics implements Metrics {
 
 
     /* istanbul ignore else */
-    if (this.layer0EnvironmentID != null || location.hostname === 'localhost') {
+    if (this.edgioEnvironmentID != null || location.hostname === 'localhost') {
       this.downloadRouteManifest()
     }
   }
@@ -121,13 +121,21 @@ class BrowserMetrics implements Metrics {
     const scriptEl = document.createElement('script')
     scriptEl.setAttribute('defer', 'on')
 
-    if (getCookieValue('layer0_eid')) {
-      scriptEl.setAttribute('src', '/__layer0__/cache-manifest.js')
-    } else {
-      scriptEl.setAttribute('src', '/__xdn__/cache-manifest.js')
+    if (getCookieValue('edgio_eid')) {
+      scriptEl.setAttribute('src', '/__edgio__/cache-manifest.js')
+      document.head.appendChild(scriptEl)
+      return
     }
-
-    document.head.appendChild(scriptEl)
+    if(getCookieValue('layer0_eid')){
+      scriptEl.setAttribute('src', '/__layer0__/cache-manifest.js')
+      document.head.appendChild(scriptEl)
+      return
+    }
+    if(getCookieValue('xdn_eid')){
+      scriptEl.setAttribute('src', '/__xdn__/cache-manifest.js')
+      document.head.appendChild(scriptEl)
+      return
+    }
   }
 
   collect() {
@@ -212,19 +220,19 @@ class BrowserMetrics implements Metrics {
   }
 
   /**
-   * Creates the data payload reported to Layer0 RUM
+   * Creates the data payload reported to Edgio RUM
    */
   private createPayload() {
     const timing = getServerTiming()
-    const layer0Routes = timing['xrj']
+    const edgioRoutes = timing['xrj']
     let pageLabel = this.options.pageLabel || this.options.router?.getPageLabel(this.originalURL)
 
-    if (!pageLabel && layer0Routes) {
+    if (!pageLabel && edgioRoutes) {
       try {
-        const routes = JSON.parse(layer0Routes)
+        const routes = JSON.parse(edgioRoutes)
         pageLabel = routes.path
       } catch (e) {
-        pageLabel = layer0Routes
+        pageLabel = edgioRoutes
       }
     }
 
@@ -271,12 +279,13 @@ class BrowserMetrics implements Metrics {
   }
 
   getAppVersion(timing: any) {
-    return this.options.appVersion || timing['layer0-deployment-id'] || timing['xdn-deployment-id']
+    return this.options.appVersion || timing['edgio-deployment-id'] || timing['layer0-deployment-id'] || timing['xdn-deployment-id']
   }
 
   getSplitTestVariant() {
     return (
       this.options.splitTestVariant ||
+      getCookieValue('edgio_destination') ||
       getCookieValue('layer0_destination') ||
       getCookieValue('xdn_destination')
     )
@@ -286,7 +295,7 @@ class BrowserMetrics implements Metrics {
     if (this.options.cacheHit != null) {
       return this.options.cacheHit ? 1 : 0
     }
-    const cache = timing['layer0-cache'] || timing['xdn-cache']
+    const cache = timing['edgio-cache'] || timing['layer0-cache'] || timing['xdn-cache']
     if (cache?.includes('HIT')) return 1
     return cache?.includes('MISS') ? 0 : null
   }
@@ -294,12 +303,12 @@ class BrowserMetrics implements Metrics {
   /**
    * Returns the page label for the current page using the router specified in options,
    * or, if no router is specified, matches the current URL path to the correct route
-   * using the Layer0 cache manifest.
+   * using the Edgio cache manifest.
    * @returns
    */
   private getCurrentPageLabel() {
     // @ts-ignore
-    const manifest = window.__LAYER0_CACHE_MANIFEST__ || window.__XDN_CACHE_MANIFEST__
+    const manifest = window.__EDGIO_CACHE_MANIFEST__ || window.__LAYER0_CACHE_MANIFEST__ || window.__XDN_CACHE_MANIFEST__
 
     if (this.options.router) {
       return this.options.router.getPageLabel(location.href)
@@ -315,7 +324,7 @@ class BrowserMetrics implements Metrics {
   }
 
   /**
-   * Sends all collected metrics to Layer0 RUM.
+   * Sends all collected metrics to Edgio RUM.
    */
   send = debounce(() => {
     const body = this.createPayload()

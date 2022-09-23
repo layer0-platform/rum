@@ -27,7 +27,7 @@ describe('Metrics', () => {
 
     beforeEach(() => {
       jest.isolateModules(() => {
-        cookies = { layer0_destination: 'A' }
+        cookies = { edgio_destination: 'A' }
         log = jest.spyOn(console, 'log').mockImplementation()
         warn = jest.spyOn(console, 'warn').mockImplementation()
         mockUserAgent('chrome')
@@ -174,15 +174,15 @@ describe('Metrics', () => {
       })
 
       it('should use server-timing headers', () => {
-        document.cookie = 'layer0_destination=A'
+        document.cookie = 'edgio_destination=A'
 
         const metrics = new Metrics({
           token: validToken,
         })
 
         timing = {
-          'layer0-cache': 'L1-HIT',
-          'layer0-deployment-id': 'deployment-1',
+          'edgio-cache': 'L1-HIT',
+          'edgio-deployment-id': 'deployment-1',
           xrj: '{ "path": "/p/:id" }',
           country: 'USA',
         }
@@ -356,10 +356,19 @@ describe('Metrics', () => {
     })
 
     describe('served from layer0', () => {
-      it('should download the layer0 cache-manifest', async () => {
-        cookies['layer0_eid'] = 'abc123'
+      it('should download the xdn cache-manifest', async () => {
+        cookies['xdn_eid'] = 'abc123'
         await new Metrics({ token: validToken, debug: true }).collect()
         const scriptEl = document.head.querySelector('script[src="/__layer0__/cache-manifest.js"]')
+        expect(scriptEl).toBeDefined()
+      })
+    })
+
+    describe('served from edgio', () => {
+      it('should download the edgio cache-manifest', async () => {
+        cookies['edgio_eid'] = 'abc123'
+        await new Metrics({ token: validToken, debug: true }).collect()
+        const scriptEl = document.head.querySelector('script[src="/__edgio__/cache-manifest.js"]')
         expect(scriptEl).toBeDefined()
       })
     })

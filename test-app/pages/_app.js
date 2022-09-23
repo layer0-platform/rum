@@ -1,6 +1,6 @@
 /* eslint-disable */
 import '../styles/globals.css'
-import { Metrics } from '@layer0/rum'
+import { Metrics } from '@edgio/rum'
 import { useEffect } from 'react'
 
 function MyApp({ Component, pageProps }) {
