@@ -125,14 +125,14 @@ class BrowserMetrics implements Metrics {
       scriptEl.setAttribute('src', '/__edgio__/cache-manifest.js')
       document.head.appendChild(scriptEl)
       return
-    } else if(getCookieValue('layer0_environment_id_info')){
+    }
+    if(getCookieValue('layer0_environment_id_info')) {
       scriptEl.setAttribute('src', '/__layer0__/cache-manifest.js')
       document.head.appendChild(scriptEl)
       return
-    } else {
-      scriptEl.setAttribute('src', '/__xdn__/cache-manifest.js')
-      document.head.appendChild(scriptEl)
     }
+    scriptEl.setAttribute('src', '/__xdn__/cache-manifest.js')
+    document.head.appendChild(scriptEl)
   }
 
   collect() {
