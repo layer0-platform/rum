@@ -121,20 +121,17 @@ class BrowserMetrics implements Metrics {
     const scriptEl = document.createElement('script')
     scriptEl.setAttribute('defer', 'on')
 
-    if (getCookieValue('edgio_eid')) {
+    if (getCookieValue('edgio_environment_id_info')) {
       scriptEl.setAttribute('src', '/__edgio__/cache-manifest.js')
       document.head.appendChild(scriptEl)
       return
-    }
-    if(getCookieValue('layer0_eid')){
+    } else if(getCookieValue('layer0_environment_id_info')){
       scriptEl.setAttribute('src', '/__layer0__/cache-manifest.js')
       document.head.appendChild(scriptEl)
       return
-    }
-    if(getCookieValue('xdn_eid')){
+    } else {
       scriptEl.setAttribute('src', '/__xdn__/cache-manifest.js')
       document.head.appendChild(scriptEl)
-      return
     }
   }
 
