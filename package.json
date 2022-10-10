@@ -1,6 +1,6 @@
 {
-  "name": "@layer0/rum",
-  "version": "3.1.0",
+  "name": "@edgio/rum",
+  "version": "5.0.0",
   "license": "UNLICENSED",
   "dependencies": {
     "lodash.debounce": "^4.0.8",
@@ -14,7 +14,7 @@
     "watch": "npm-watch",
     "push-build": "npm run build && cd dist && yalc push && cd ..",
     "release": "cd ./dist; npm publish --access public; cd ..",
-    "layer0:deploy": "layer0 deploy --team=moovweb-rum --site=moovweb-rum --environment=production --token=$LAYER0_DEPLOY_TOKEN",
+    "edgio:deploy": "edgio deploy --team=moovweb-rum --site=moovweb-rum --environment=production --token=$EDGIO_DEPLOY_TOKEN",
     "test": "jest",
     "lint": "eslint --ext .js,.ts --config .eslintrc.js .",
     "lint-staged": "lint-staged"
@@ -62,8 +62,8 @@
     "@types/ua-parser-js": "^0.7.35",
     "@typescript-eslint/eslint-plugin": "^4.15.2",
     "@typescript-eslint/parser": "^4.15.2",
-    "@layer0/cli": "^4.0.0",
-    "@layer0/core": "^4.0.0",
+    "@edgio/cli": "^5.0.0",
+    "@edgio/core": "^5.0.0",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^26.6.3",
     "eslint": "^7.20.0",

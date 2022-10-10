@@ -107,6 +107,7 @@ cdn
 .DS_Store
 
 .layer0
+.edgio
 
 .yalc
 yalc.lock

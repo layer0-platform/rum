@@ -23,13 +23,13 @@ describe('cdn', () => {
     clear()
   })
 
-  it('should export Layer0.Metrics', async done => {
+  it('should export Edgio.Metrics', async done => {
     const fetch = (window.fetch = jest.fn())
     require('../src/cdn')
 
-    await new Layer0.Metrics({
+    await new Edgio.Metrics({
       token: validToken,
-      router: new Layer0.Router().match('/', ({ setPageLabel }) => setPageLabel('home')),
+      router: new Edgio.Router().match('/', ({ setPageLabel }) => setPageLabel('home')),
     }).collect()
 
     await sleep(SEND_DELAY + 20)
@@ -67,6 +67,10 @@ describe('cdn', () => {
   })
 
   it('should export XDN.Metrics', () => {
-    expect(XDN).toBe(Layer0)
+    expect(XDN).toBe(Edgio)
+  })
+
+  it('should export Layer0.Metrics', () => {
+    expect(Layer0).toBe(Edgio)
   })
 })
