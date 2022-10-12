@@ -111,3 +111,7 @@ cdn
 
 .yalc
 yalc.lock
+
+# Ide config files
+.idea
+.vscode
