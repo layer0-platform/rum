@@ -1,5 +1,5 @@
 import { getCLS, getFID, getLCP, Metric, getFCP, getTTFB } from 'web-vitals'
-import { DEST_URL, SEND_DELAY } from './constants'
+import { CACHE_MANIFEST_TTL, DEST_URL, SEND_DELAY } from './constants'
 import getCookieValue from './getCookieValue'
 import getServerTiming from './getServerTiming'
 import isChrome from './isChrome'
@@ -7,6 +7,7 @@ import Router from './Router'
 import uuid from './uuid'
 import debounce from 'lodash.debounce'
 import getSelectorForElement from './getSelectorForElement'
+import CacheManifest from './CacheManifest'
 
 let rumClientVersion: string
 
@@ -54,6 +55,10 @@ export interface MetricsOptions {
    * Set to true to output all measurements to the console
    */
   debug?: boolean
+  /**
+   * The number of seconds for how long the content of cache-manifest.js file is cached in localStorage
+   */
+  cacheManifestTTL?: number
 }
 
 interface MetricsConstructor {
@@ -92,7 +97,8 @@ class BrowserMetrics implements Metrics {
   private clientNavigationHasOccurred: boolean = false
   private edgioEnvironmentID?: string
   private splitTestVariant?: string
-  private connectionType?:  string
+  private connectionType?: string
+  private manifest?: CacheManifest
 
   constructor(options: MetricsOptions = {}) {
     this.originalURL = location.href
@@ -110,29 +116,10 @@ class BrowserMetrics implements Metrics {
       console.debug('could not obtain navigator.connection metrics')
     }
 
-
     /* istanbul ignore else */
     if (this.edgioEnvironmentID != null || location.hostname === 'localhost') {
-      this.downloadRouteManifest()
+      this.manifest = new CacheManifest(options.cacheManifestTTL ?? CACHE_MANIFEST_TTL)
     }
-  }
-
-  private downloadRouteManifest() {
-    const scriptEl = document.createElement('script')
-    scriptEl.setAttribute('defer', 'on')
-
-    if (getCookieValue('edgio_environment_id_info')) {
-      scriptEl.setAttribute('src', '/__edgio__/cache-manifest.js')
-      document.head.appendChild(scriptEl)
-      return
-    }
-    if(getCookieValue('layer0_environment_id_info')) {
-      scriptEl.setAttribute('src', '/__layer0__/cache-manifest.js')
-      document.head.appendChild(scriptEl)
-      return
-    }
-    scriptEl.setAttribute('src', '/__xdn__/cache-manifest.js')
-    document.head.appendChild(scriptEl)
   }
 
   collect() {
@@ -157,6 +144,7 @@ class BrowserMetrics implements Metrics {
   /**
    * Returns a promise that resolves once the specified metric has been collected.
    * @param getMetric
+   * @param params
    */
   private toPromise(getMetric: Function, ...params: any) {
     return new Promise<void>(resolve => {
@@ -276,7 +264,12 @@ class BrowserMetrics implements Metrics {
   }
 
   getAppVersion(timing: any) {
-    return this.options.appVersion || timing['edgio-deployment-id'] || timing['layer0-deployment-id'] || timing['xdn-deployment-id']
+    return (
+      this.options.appVersion ||
+      timing['edgio-deployment-id'] ||
+      timing['layer0-deployment-id'] ||
+      timing['xdn-deployment-id']
+    )
   }
 
   getSplitTestVariant() {
@@ -304,8 +297,7 @@ class BrowserMetrics implements Metrics {
    * @returns
    */
   private getCurrentPageLabel() {
-    // @ts-ignore
-    const manifest = window.__EDGIO_CACHE_MANIFEST__ || window.__LAYER0_CACHE_MANIFEST__ || window.__XDN_CACHE_MANIFEST__
+    const manifest = this.manifest?.getRoutes() ?? []
 
     if (this.options.router) {
       return this.options.router.getPageLabel(location.href)
@@ -352,7 +344,7 @@ class BrowserMetrics implements Metrics {
  * run on the server as might happen with Nuxt, Next, etc...
  */
 class ServerMetrics implements Metrics {
-  constructor(options: MetricsOptions) {}
+  constructor(_: MetricsOptions) {}
 
   collect() {
     return Promise.resolve()
