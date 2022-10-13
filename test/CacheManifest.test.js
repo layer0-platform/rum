@@ -123,12 +123,10 @@ describe('CacheManifest', () => {
   })
 
   it('should have default TTL', () => {
-    const cacheManifest = new CacheManifest()
-    expect(cacheManifest.ttl).toBe(CACHE_MANIFEST_TTL)
+    expect(new CacheManifest().ttl).toBe(CACHE_MANIFEST_TTL)
   })
 
   it('should have custom TTL', () => {
-    const cacheManifest = new CacheManifest(500)
-    expect(cacheManifest.ttl).toBe(500)
+    expect(new CacheManifest(500).ttl).toBe(500)
   })
 })

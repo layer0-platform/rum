@@ -103,8 +103,7 @@ class BrowserMetrics implements Metrics {
   constructor(options: MetricsOptions = {}) {
     this.originalURL = location.href
     this.options = options
-    this.edgioEnvironmentID =
-      getCookieValue('edgio_eid') || getCookieValue('layer0_eid') || getCookieValue('xdn_eid')
+    this.edgioEnvironmentID = getCookieValue('edgio_eid') || getCookieValue('layer0_eid') || getCookieValue('xdn_eid')
     this.token = options.token || this.edgioEnvironmentID
     this.sendTo = `${this.options.sendTo || DEST_URL}/${this.token}`
     this.pageID = uuid()
@@ -145,6 +144,7 @@ class BrowserMetrics implements Metrics {
   /**
    * Returns a promise that resolves once the specified metric has been collected.
    * @param getMetric
+   * @param params
    */
   private toPromise(getMetric: Function, ...params: any) {
     return new Promise<void>(resolve => {
@@ -344,7 +344,7 @@ class BrowserMetrics implements Metrics {
  * run on the server as might happen with Nuxt, Next, etc...
  */
 class ServerMetrics implements Metrics {
-  constructor(options: MetricsOptions) {}
+  constructor(_: MetricsOptions) {}
 
   collect() {
     return Promise.resolve()
