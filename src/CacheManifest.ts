@@ -33,27 +33,24 @@ export default class CacheManifest {
       this.download()
       return
     }
-    this.routes = this.getCacheroutes()
+    this.routes = this.getCacheRoutes()
   }
 
   /**
    * @returns The array of routes
    */
   public getRoutes(): Array<any> {
-    // when routes was loaded, return them
+    // when routes were loaded, return them
     if (this.routes && this.routes.length > 0) {
       return this.routes
     }
 
-    // when routes was downloaded, save them to local cache
+    // when routes were downloaded, save them to local cache
     // @ts-ignore
-    let windowManifest =
-      window.__EDGIO_CACHE_MANIFEST__ ||
-      window.__LAYER0_CACHE_MANIFEST__ ||
-      window.__XDN_CACHE_MANIFEST__
+    let windowManifest = window.__EDGIO_CACHE_MANIFEST__ || window.__LAYER0_CACHE_MANIFEST__ || window.__XDN_CACHE_MANIFEST__
     if (windowManifest) {
       this.routes = windowManifest
-      this.setCacheroutes(this.routes)
+      this.setCacheRoutes(this.routes)
       this.setCacheTime(new Date().getTime())
     }
 
@@ -80,14 +77,14 @@ export default class CacheManifest {
    * Returns the array of routes from localStorage cache
    * @returns Array<any>
    */
-  private getCacheroutes(): Array<any> {
+  private getCacheRoutes(): Array<any> {
     return JSON.parse(localStorage.getItem(CACHE_MANIFEST_DATA_KEY) ?? '[]')
   }
 
   /**
    * Saves the array of routes to localStorage cache
    */
-  private setCacheroutes(routes: Array<any>): void {
+  private setCacheRoutes(routes: Array<any>): void {
     localStorage.setItem(CACHE_MANIFEST_DATA_KEY, JSON.stringify(routes))
   }
 
@@ -97,7 +94,7 @@ export default class CacheManifest {
    */
   private isCacheFresh(): boolean {
     let cacheSavedTime = this.getCacheTime()
-    return cacheSavedTime != null && new Date().getTime() - cacheSavedTime <= this.ttl * 1000
+    return cacheSavedTime != null && new Date().getTime() - cacheSavedTime < this.ttl * 1000
   }
 
   /**
