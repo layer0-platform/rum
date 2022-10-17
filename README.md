@@ -1,6 +1,6 @@
 # Edgio Core Web Vitals Analytics
 
-The real user monitoring (RUM) client library for [Edgio Core Web Vitals Analytics](https://layer0.co/events/real-time-core-web-vitals-analytics).
+The real user monitoring (RUM) client library for [Edgio Core Web Vitals Analytics](https://docs.layer0.co/guides/core_web_vitals).
 
 # Releasing a New Version
 
