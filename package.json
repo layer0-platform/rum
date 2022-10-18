@@ -6,7 +6,7 @@
     "lodash.debounce": "^4.0.8",
     "path-to-regexp": "^6.2.1",
     "ua-parser-js": "^0.7.31",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^3.0.3"
   },
   "scripts": {
     "unyalc": "yalc remove --all",
