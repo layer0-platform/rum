@@ -104,12 +104,20 @@ export default class CacheManifest {
     const scriptEl = document.createElement('script')
     scriptEl.setAttribute('defer', 'on')
 
-    if (getCookieValue('edgio_environment_id_info')) {
+    if (
+        getCookieValue('edgio_environment_id_info') ||
+        getCookieValue('edgio_eid') ||
+        getCookieValue('edgio_bucket')
+    ) {
       scriptEl.setAttribute('src', '/__edgio__/cache-manifest.js')
       document.head.appendChild(scriptEl)
       return
     }
-    if (getCookieValue('layer0_environment_id_info')) {
+    if (
+        getCookieValue('layer0_environment_id_info') ||
+        getCookieValue('layer0_eid') ||
+        getCookieValue('layer0_bucket')
+    ) {
       scriptEl.setAttribute('src', '/__layer0__/cache-manifest.js')
       document.head.appendChild(scriptEl)
       return
