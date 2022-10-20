@@ -10,6 +10,15 @@ const TTL = {
 }
 
 module.exports = new Router()
+  .get('/mcafee/latest.js', ({ cache, serveStatic }) => {
+    cache({
+      ...TTL,
+      browser: {
+        maxAgeSeconds: 60 * 60,
+      },
+    })
+    serveStatic('cdn/v5.0.4.js')
+  })
   .get('/latest.js', ({ cache, serveStatic }) => {
     cache({
       ...TTL,
