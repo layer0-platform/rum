@@ -17,7 +17,7 @@ module.exports = new Router()
         maxAgeSeconds: 60 * 60,
       },
     })
-    serveStatic('cdn/v5.0.4.js')
+    serveStatic('cdn/v5.0.6.js', { permanent: true })
   })
   .get('/latest.js', ({ cache, serveStatic }) => {
     cache({
