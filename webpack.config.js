@@ -29,6 +29,9 @@ module.exports = {
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
+    alias: {
+      './package.json': path.resolve(__dirname, 'package.json'),
+    },
   },
   output: {
     filename: '[name].js',
