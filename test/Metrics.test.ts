@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { DEST_URL, SEND_DELAY } from '../src/constants'
 import Router from '../src/Router'
 import { clear, mockUserAgent } from 'jest-useragent-mock'

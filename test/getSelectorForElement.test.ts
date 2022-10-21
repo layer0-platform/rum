@@ -1,3 +1,4 @@
+// @ts-nocheck
 import getSelectorForElement from '../src/getSelectorForElement'
 
 describe('getSelectorForElement', () => {
