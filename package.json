@@ -5,7 +5,6 @@
   "dependencies": {
     "lodash.debounce": "^4.0.8",
     "path-to-regexp": "^6.2.1",
-    "ua-parser-js": "^0.7.31",
     "web-vitals": "^3.0.3"
   },
   "scripts": {
@@ -20,6 +19,9 @@
     "lint-staged": "lint-staged",
     "test:es6": "npx es-check es6 ./cdn/latest.js",
     "test:validate-js": "node --check ./dist/*.js && node --check ./cdn/latest.js && node --check ./cdn/*.js"
+  },
+  "repository": {
+    "url": "https://github.com/layer0-platform/rum"
   },
   "watch": {
     "push-build": {
