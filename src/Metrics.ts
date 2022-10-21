@@ -103,7 +103,7 @@ class BrowserMetrics implements Metrics {
   constructor(options: MetricsOptions = {}) {
     this.originalURL = location.href
     this.options = options
-    this.edgioEnvironmentID = getCookieValue('edgio_eid') || getCookieValue('layer0_eid') || getCookieValue('xdn_eid')
+    this.edgioEnvironmentID = getEnvironmentCookieValue()
     this.token = options.token || this.edgioEnvironmentID
     this.sendTo = `${this.options.sendTo || DEST_URL}/${this.token}`
     this.pageID = uuid()
@@ -189,13 +189,13 @@ class BrowserMetrics implements Metrics {
         }
 
         /*
-          Note: we can get the elements that shifted from CLS events by:
-
-          metric.entries[metric.entries.length - 1].sources
-            ?.filter((source: any) => source.node != null)
-            .map((source: any) => source.node.outerHTML)
-            .join(', ')
-        */
+                  Note: we can get the elements that shifted from CLS events by:
+        
+                  metric.entries[metric.entries.length - 1].sources
+                    ?.filter((source: any) => source.node != null)
+                    .map((source: any) => source.node.outerHTML)
+                    .join(', ')
+                */
 
         this.send()
 
@@ -337,6 +337,17 @@ class BrowserMetrics implements Metrics {
 
     this.index++
   }, SEND_DELAY)
+}
+
+const getEnvironmentCookieValue = () => {
+  return (
+    getCookieValue('edgio_environment_id_info') ||
+    getCookieValue('edgio_eid') ||
+    getCookieValue('layer0_environment_id_info') ||
+    getCookieValue('layer0_eid') ||
+    getCookieValue('xdn_environment_id_info') ||
+    getCookieValue('xdn_eid')
+  )
 }
 
 /**
