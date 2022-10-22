@@ -1,4 +1,5 @@
 /* eslint-disable */
+// @ts-nocheck
 import { DEST_URL, SEND_DELAY } from '../src/constants'
 import { clear, mockUserAgent } from 'jest-useragent-mock'
 import sleep from './utils/sleep'
@@ -23,7 +24,7 @@ describe('cdn', () => {
     clear()
   })
 
-  it('should export Edgio.Metrics', async done => {
+  it('should export Edgio.Metrics', async () => {
     const fetch = (window.fetch = jest.fn())
     require('../src/cdn')
 
@@ -63,7 +64,6 @@ describe('cdn', () => {
 
     expect(fetch.mock.calls.length).toBe(1)
 
-    done()
   })
 
   it('should export XDN.Metrics', () => {

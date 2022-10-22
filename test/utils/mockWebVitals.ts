@@ -1,3 +1,4 @@
+// @ts-nocheck
 module.exports = () => {
   let clsDelta = 2
   let clsEntries = null

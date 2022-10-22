@@ -1,6 +1,6 @@
 name: Run Tests
 
-on: [push]
+on: [ push ]
 
 jobs:
   test:
@@ -32,3 +32,6 @@ jobs:
       - run: npm run lint
         env:
           CI: true
+      # These steps need the build to be run
+      - run: npm run test:es6
+      - run: npm run test:validate-js

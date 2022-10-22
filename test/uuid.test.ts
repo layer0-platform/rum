@@ -1,3 +1,4 @@
+// @ts-nocheck
 describe('uuid', () => {
   describe('with crypto', () => {
     let uuid

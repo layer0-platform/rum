@@ -1,3 +1,4 @@
+// @ts-nocheck
 import getServerTiming from '../src/getServerTiming'
 
 describe('getServerTiming', () => {

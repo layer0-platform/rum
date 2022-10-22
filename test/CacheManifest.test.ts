@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { CACHE_MANIFEST_TIME_KEY, CACHE_MANIFEST_TTL } from '../src/constants'
 
 describe('CacheManifest', () => {
