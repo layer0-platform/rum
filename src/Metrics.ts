@@ -112,7 +112,9 @@ class BrowserMetrics implements Metrics {
       // @ts-ignore
       this.connectionType = navigator.connection.effectiveType
     } catch (e) {
-      console.debug('could not obtain navigator.connection metrics')
+      if(this.options.debug){
+        console.debug('[RUM] could not obtain navigator.connection metrics')
+      }
     }
 
     /* istanbul ignore else */
@@ -224,7 +226,10 @@ class BrowserMetrics implements Metrics {
         // @ts-ignore
         this.connectionType = navigator.connection.effectiveType
       } catch (e) {
-        console.debug('could not obtain navigator.connection metrics')
+
+        if(this.options.debug){
+          console.debug('[RUM] could not obtain navigator.connection metrics')
+        }
       }
     }
 
