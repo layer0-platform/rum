@@ -409,12 +409,6 @@ describe('Metrics', () => {
         })
       })
 
-      it('should do nothing if the browser is not chrome', async () => {
-        mockUserAgent('safari')
-        await metrics.collect()
-        expect(fetch).not.toHaveBeenCalled()
-      })
-
       it('should not send cls if delta is 0', async () => {
         webVitalsMock.setClsDelta(0)
         await metrics.collect()
@@ -454,6 +448,13 @@ describe('Metrics', () => {
           ils: 2,
           ux: 'http://localhost/p/red-shoe',
         })
+      })
+
+      it('should send even when the browser is not chrome', async () => {
+        mockUserAgent('safari')
+        await metrics.collect()
+        await sleep(SEND_DELAY + 20)
+        expect(fetch).toHaveBeenCalled()
       })
     })
   })

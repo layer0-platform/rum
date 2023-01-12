@@ -2,7 +2,6 @@ import { getCLS, getFID, getLCP, Metric, getFCP, getTTFB } from 'web-vitals'
 import { CACHE_MANIFEST_TTL, DEST_URL, SEND_DELAY } from './constants'
 import getCookieValue from './getCookieValue'
 import getServerTiming from './getServerTiming'
-import isChrome from './isChrome'
 import Router from './Router'
 import uuid from './uuid'
 import debounce from 'lodash.debounce'
@@ -123,19 +122,14 @@ class BrowserMetrics implements Metrics {
   }
 
   collect() {
-    if (isChrome()) {
-      // We only collect RUM on Chrome because Google only collects core web vitals using Chrome.
-      return Promise.all([
-        this.toPromise(getTTFB),
-        this.toPromise(getFCP),
-        this.toPromise(getLCP, true), // setting true here ensures we get LCP immediately
-        this.toPromise(getFID),
-        this.toPromise(getCLS, true), // send all CLS measurements so we can track it over time and catch CLS during client-side navigation
-      ]).then(() => {})
-    } else {
-      return Promise.resolve()
-    }
-  }
+    return Promise.all([
+      this.toPromise(getTTFB),
+      this.toPromise(getFCP),
+      this.toPromise(getLCP, true), // setting true here ensures we get LCP immediately
+      this.toPromise(getFID),
+      this.toPromise(getCLS, true), // send all CLS measurements so we can track it over time and catch CLS during client-side navigation
+    ]).then(() => {})
+}
 
   private flushMetrics() {
     return { clsel: [] }
