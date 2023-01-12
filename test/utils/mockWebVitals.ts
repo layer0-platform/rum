@@ -4,12 +4,12 @@ module.exports = () => {
   let clsEntries = null
 
   jest.doMock('web-vitals', () => ({
-    getFCP: cb => setTimeout(() => cb({ name: 'FCP', value: 5 }), 5),
-    getLCP: cb => setTimeout(() => cb({ name: 'LCP', value: 3 }), 1),
-    getFID: cb => setTimeout(() => cb({ name: 'FID', value: 1 }), 2),
-    getCLS: cb =>
+    onFCP: cb => setTimeout(() => cb({ name: 'FCP', value: 5 }), 5),
+    onLCP: cb => setTimeout(() => cb({ name: 'LCP', value: 3 }), 1),
+    onFID: cb => setTimeout(() => cb({ name: 'FID', value: 1 }), 2),
+    onCLS: cb =>
       setTimeout(() => cb({ name: 'CLS', value: 2, delta: clsDelta, entries: clsEntries }), 3),
-    getTTFB: cb => setTimeout(() => cb({ name: 'TTFB', value: 4 }), 4),
+    onTTFB: cb => setTimeout(() => cb({ name: 'TTFB', value: 4 }), 4),
   }))
 
   return {

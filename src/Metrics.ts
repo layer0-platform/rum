@@ -1,4 +1,4 @@
-import { getCLS, getFID, getLCP, Metric, getFCP, getTTFB } from 'web-vitals'
+import {Metric, onTTFB, onFCP, onLCP, onFID, onCLS} from 'web-vitals'
 import { CACHE_MANIFEST_TTL, DEST_URL, SEND_DELAY } from './constants'
 import getCookieValue from './getCookieValue'
 import getServerTiming from './getServerTiming'
@@ -123,11 +123,11 @@ class BrowserMetrics implements Metrics {
 
   collect() {
     return Promise.all([
-      this.toPromise(getTTFB),
-      this.toPromise(getFCP),
-      this.toPromise(getLCP, true), // setting true here ensures we get LCP immediately
-      this.toPromise(getFID),
-      this.toPromise(getCLS, true), // send all CLS measurements so we can track it over time and catch CLS during client-side navigation
+      this.toPromise(onTTFB),
+      this.toPromise(onFCP),
+      this.toPromise(onLCP, true), // setting true here ensures we get LCP immediately
+      this.toPromise(onFID),
+      this.toPromise(onCLS, true), // send all CLS measurements so we can track it over time and catch CLS during client-side navigation
     ]).then(() => {})
 }
 
