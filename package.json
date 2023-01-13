@@ -88,6 +88,12 @@
     "webpack-bundle-analyzer": "^4.4.0",
     "webpack-cli": "^4.5.0"
   },
+  "keywords": [
+    "rum",
+    "edgio",
+    "layer0",
+    "analytics"
+  ],
   "lint-staged": {
     "*.{js,ts}": [
       "prettier --write",
