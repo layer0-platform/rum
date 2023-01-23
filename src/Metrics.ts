@@ -1,7 +1,7 @@
 import { getCLS, getFID, getLCP, Metric, getFCP, getTTFB } from 'web-vitals'
 import { CACHE_MANIFEST_TTL, DEST_URL, SEND_DELAY } from './constants'
 import getCookieValue from './getCookieValue'
-import getServerTiming from './getServerTiming'
+import getServerTiming, { ServerTiming } from './getServerTiming'
 import isChrome from './isChrome'
 import Router from './Router'
 import uuid from './uuid'
@@ -209,7 +209,7 @@ class BrowserMetrics implements Metrics {
    */
   private createPayload() {
     const timing = getServerTiming()
-    const edgioRoutes = timing['xrj']
+    const edgioRoutes = timing.xrj
     let pageLabel = this.options.pageLabel || this.options.router?.getPageLabel(this.originalURL)
 
     if (!pageLabel && edgioRoutes) {
@@ -247,15 +247,15 @@ class BrowserMetrics implements Metrics {
       ua: navigator.userAgent,
       w: window.screen.width,
       h: window.screen.height,
-      v: this.getAppVersion(timing),
+      v: this.getAppVersion(),
       cv: rumClientVersion,
       ht: this.isCacheHit(timing),
       l: pageLabel, // for backwards compatibility
       l0: pageLabel,
       lx: this.getCurrentPageLabel(),
-      c: this.options.country || timing['country'],
+      c: this.options.country || timing.edge_country,
       ct: this.connectionType,
-      epop: timing['edge_pop'],
+      epop: timing.edge_pop,
     }
 
     this.metrics = this.flushMetrics()
@@ -263,12 +263,13 @@ class BrowserMetrics implements Metrics {
     return JSON.stringify(data)
   }
 
-  getAppVersion(timing: any) {
+  getAppVersion() {
     return (
-      this.options.appVersion ||
-      timing['edgio-deployment-id'] ||
-      timing['layer0-deployment-id'] ||
-      timing['xdn-deployment-id']
+      // todo: should we use the version from the server timing header?
+      this.options.appVersion
+      // timing['edgio-deployment-id'] ||
+      // timing['layer0-deployment-id'] ||
+      // timing['xdn-deployment-id']
     )
   }
 
@@ -281,13 +282,20 @@ class BrowserMetrics implements Metrics {
     )
   }
 
-  isCacheHit(timing: any) {
+  isCacheHit(timing: ServerTiming) {
     if (this.options.cacheHit != null) {
       return this.options.cacheHit ? 1 : 0
     }
-    const cache = timing['edgio-cache'] || timing['layer0-cache'] || timing['xdn-cache']
-    if (cache?.includes('HIT')) return 1
-    return cache?.includes('MISS') ? 0 : null
+    
+    if (timing.edge_cache?.includes('HIT')) {
+      return 1
+    } 
+
+    if (timing.edge_cache?.includes('MISS')) {
+      return 0;
+    }
+
+    return null
   }
 
   /**

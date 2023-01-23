@@ -187,10 +187,11 @@ describe('Metrics', () => {
         })
 
         timing = {
-          'edgio-cache': 'L1-HIT',
-          'edgio-deployment-id': 'deployment-1',
+          'edge_cache': 'HIT',
+          // Deployment currently not supporetd by Sailfish          
+          // 'edgio-deployment-id': 'deployment-1',
           xrj: '{ "path": "/p/:id" }',
-          country: 'USA',
+          edge_country: 'USA',
         }
 
         window.navigator.connection = { effectiveType: '4g' }
@@ -198,7 +199,7 @@ describe('Metrics', () => {
         expect(JSON.parse(metrics.createPayload())).toEqual({
           ...commonParams,
           t: validToken,
-          v: 'deployment-1',
+          //v: 'deployment-1',
           ht: 1,
           c: 'USA',
           l: '/p/:id',
@@ -219,16 +220,17 @@ describe('Metrics', () => {
         })
 
         timing = {
-          'xdn-cache': 'L1-HIT',
-          'xdn-deployment-id': 'deployment-2',
+          'edge_cache': 'L1-HIT',
+          // Deployment currently not supporetd by Sailfish
+          // 'xdn-deployment-id': 'deployment-2',
           xrj: '{ "path": "/p/:id" }',
-          country: 'USA',
+          edge_country: 'USA',
         }
 
         expect(JSON.parse(metrics.createPayload())).toEqual({
           ...commonParams,
           t: validToken,
-          v: 'deployment-2',
+          // v: 'deployment-2',
           ht: 1,
           c: 'USA',
           l: '/p/:id',
@@ -276,14 +278,14 @@ describe('Metrics', () => {
           ht: 1,
         })
 
-        timing = { 'xdn-cache': 'L1-HIT' }
+        timing = { 'edge_cache': 'L1-HIT' }
         metrics = new Metrics({ cacheManifestTTL: 0 })
         expect(JSON.parse(metrics.createPayload())).toEqual({
           ...commonParams,
           ht: 1,
         })
 
-        timing = { 'xdn-cache': 'L1-MISS' }
+        timing = { 'edge_cache': 'L1-MISS' }
         metrics = new Metrics({ cacheManifestTTL: 0 })
         expect(JSON.parse(metrics.createPayload())).toEqual({
           ...commonParams,
