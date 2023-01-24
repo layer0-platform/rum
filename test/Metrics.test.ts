@@ -188,8 +188,6 @@ describe('Metrics', () => {
 
         timing = {
           'edge_cache': 'HIT',
-          // Deployment currently not supporetd by Sailfish          
-          // 'edgio-deployment-id': 'deployment-1',
           xrj: '{ "path": "/p/:id" }',
           edge_country: 'USA',
         }
@@ -199,7 +197,6 @@ describe('Metrics', () => {
         expect(JSON.parse(metrics.createPayload())).toEqual({
           ...commonParams,
           t: validToken,
-          //v: 'deployment-1',
           ht: 1,
           c: 'USA',
           l: '/p/:id',
@@ -220,9 +217,7 @@ describe('Metrics', () => {
         })
 
         timing = {
-          'edge_cache': 'L1-HIT',
-          // Deployment currently not supporetd by Sailfish
-          // 'xdn-deployment-id': 'deployment-2',
+          'edge_cache': 'HIT',
           xrj: '{ "path": "/p/:id" }',
           edge_country: 'USA',
         }
@@ -230,7 +225,36 @@ describe('Metrics', () => {
         expect(JSON.parse(metrics.createPayload())).toEqual({
           ...commonParams,
           t: validToken,
-          // v: 'deployment-2',
+          ht: 1,
+          c: 'USA',
+          l: '/p/:id',
+          l0: '/p/:id',
+          ct: '4g',
+        })
+      })
+
+      it('should use layer0 mappings on server-timing headers (backward compatibility test)', () => {
+        document.cookie = 'xdn_destination=A'
+
+        // Try adding connection before the constructor for full code coverage
+        window.navigator.connection = { effectiveType: '4g' }
+
+        const metrics = new Metrics({
+          token: validToken,
+          cacheManifestTTL: 0,
+        })
+
+        timing = {
+          'edgio-cache': 'L1-HIT',
+          'xdn-deployment-id': 'deployment-2',
+          xrj: '{ "path": "/p/:id" }',
+          country: 'USA',
+        }
+
+        expect(JSON.parse(metrics.createPayload())).toEqual({
+          ...commonParams,
+          t: validToken,
+          v: 'deployment-2',
           ht: 1,
           c: 'USA',
           l: '/p/:id',
