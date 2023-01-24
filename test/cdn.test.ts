@@ -3,6 +3,7 @@
 import { DEST_URL, SEND_DELAY } from '../src/constants'
 import { clear, mockUserAgent } from 'jest-useragent-mock'
 import sleep from './utils/sleep'
+import mockPerformanceNavigation from "./utils/mockServerTimings";
 
 const validToken = "12345678-1234-abcd-ef00-1234567890ab"
 
@@ -17,6 +18,7 @@ describe('cdn', () => {
       timing = {}
       jest.doMock('../src/getServerTiming', () => () => timing)
       require('./utils/mockWebVitals')()
+      mockPerformanceNavigation()
     })
   })
 

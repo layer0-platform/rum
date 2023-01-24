@@ -3,6 +3,7 @@ import { DEST_URL, SEND_DELAY } from '../src/constants'
 import Router from '../src/Router'
 import { clear, mockUserAgent } from 'jest-useragent-mock'
 import sleep from './utils/sleep'
+import mockPerformanceNavigation from "./utils/mockServerTimings";
 
 const validToken = '12345678-1234-abcd-ef00-1234567890ab'
 
@@ -40,6 +41,7 @@ describe('Metrics', () => {
         webVitalsMock = require('./utils/mockWebVitals')()
         Metrics = require('../src/Metrics').default
         delete window.navigator.connection
+        mockPerformanceNavigation()
       })
     })
 

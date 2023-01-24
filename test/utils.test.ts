@@ -1,5 +1,6 @@
 import { isChrome, isServerTimingSupported } from '../src/utils'
 import { clear, mockUserAgent } from 'jest-useragent-mock'
+import mockPerformanceNavigation from "./utils/mockServerTimings";
 
 describe('isChrome', () => {
   afterEach(clear)
@@ -20,25 +21,17 @@ describe('isChrome', () => {
 })
 
 describe('isServerTimingSupported', () => {
-  const mockPerformanceNavigation = jest.fn()
 
-  beforeAll(() => {
-    Object.defineProperty(window, 'performance', {
-      value: {
-        getEntriesByType: mockPerformanceNavigation,
-      },
-    })
-  })
 
   it('is not supported', () => {
     // On browsers which don't support it, the serverTiming is undefined
-    mockPerformanceNavigation.mockReturnValue([{ serverTiming: undefined }])
+    mockPerformanceNavigation([{ serverTiming: undefined }])
 
     expect(isServerTimingSupported()).toBe(false)
   })
 
   it('is supported', () => {
-    mockPerformanceNavigation.mockReturnValue([{ serverTiming: [] }])
+    mockPerformanceNavigation([{ serverTiming: [] }])
 
     expect(isServerTimingSupported()).toBe(true)
   })
