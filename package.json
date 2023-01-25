@@ -12,7 +12,7 @@
     "build": "rm -rf ./dist; mkdir ./dist; cp -r package.json README.md ./dist; tsc; webpack;",
     "watch": "npm-watch",
     "push-build": "npm run build && cd dist && yalc push && cd ..",
-    "release": "cd ./dist; npm publish --access public --tag pre-v7; cd ..",
+    "release": "cd ./dist; npm publish --access public; cd ..",
     "edgio:deploy": "edgio deploy --team=moovweb-rum --site=moovweb-rum --environment=production --token=$EDGIO_DEPLOY_TOKEN",
     "test": "jest",
     "lint": "eslint --ext .js,.ts --config .eslintrc.js .",
