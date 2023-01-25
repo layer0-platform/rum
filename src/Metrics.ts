@@ -1,13 +1,13 @@
-import { getCLS, getFID, getLCP, Metric, getFCP, getTTFB } from 'web-vitals'
+import { Metric, onTTFB, onFCP, onLCP, onFID, onCLS } from 'web-vitals'
 import { CACHE_MANIFEST_TTL, DEST_URL, SEND_DELAY } from './constants'
 import getCookieValue from './getCookieValue'
 import getServerTiming from './getServerTiming'
-import isChrome from './isChrome'
 import Router from './Router'
 import uuid from './uuid'
 import debounce from 'lodash.debounce'
 import getSelectorForElement from './getSelectorForElement'
 import CacheManifest from './CacheManifest'
+import { isServerTimingSupported } from './utils'
 
 let rumClientVersion: string
 
@@ -113,7 +113,9 @@ class BrowserMetrics implements Metrics {
       // @ts-ignore
       this.connectionType = navigator.connection.effectiveType
     } catch (e) {
-      console.debug('could not obtain navigator.connection metrics')
+      if (this.options.debug) {
+        console.debug('[RUM] could not obtain navigator.connection metrics')
+      }
     }
 
     /* istanbul ignore else */
@@ -123,14 +125,16 @@ class BrowserMetrics implements Metrics {
   }
 
   collect() {
-    if (isChrome()) {
-      // We only collect RUM on Chrome because Google only collects core web vitals using Chrome.
+    if (isServerTimingSupported()) {
+      // Server timing is not supported on browsers like Safari, this causes
+      // our library report all Safari requests as Cache MISS, we need to change
+      // how we handle MISS/HIT ration in the RUM Edgio BE
       return Promise.all([
-        this.toPromise(getTTFB),
-        this.toPromise(getFCP),
-        this.toPromise(getLCP, true), // setting true here ensures we get LCP immediately
-        this.toPromise(getFID),
-        this.toPromise(getCLS, true), // send all CLS measurements so we can track it over time and catch CLS during client-side navigation
+        this.toPromise(onTTFB),
+        this.toPromise(onFCP),
+        this.toPromise(onLCP, true), // setting true here ensures we get LCP immediately
+        this.toPromise(onFID),
+        this.toPromise(onCLS, true), // send all CLS measurements so we can track it over time and catch CLS during client-side navigation
       ]).then(() => {})
     } else {
       return Promise.resolve()
@@ -230,7 +234,9 @@ class BrowserMetrics implements Metrics {
         // @ts-ignore
         this.connectionType = navigator.connection.effectiveType
       } catch (e) {
-        console.debug('could not obtain navigator.connection metrics')
+        if (this.options.debug) {
+          console.debug('[RUM] could not obtain navigator.connection metrics')
+        }
       }
     }
 

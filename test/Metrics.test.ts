@@ -3,6 +3,7 @@ import { DEST_URL, SEND_DELAY } from '../src/constants'
 import Router from '../src/Router'
 import { clear, mockUserAgent } from 'jest-useragent-mock'
 import sleep from './utils/sleep'
+import mockPerformanceNavigation from "./utils/mockServerTimings";
 
 const validToken = '12345678-1234-abcd-ef00-1234567890ab'
 
@@ -40,6 +41,7 @@ describe('Metrics', () => {
         webVitalsMock = require('./utils/mockWebVitals')()
         Metrics = require('../src/Metrics').default
         delete window.navigator.connection
+        mockPerformanceNavigation()
       })
     })
 
@@ -409,12 +411,6 @@ describe('Metrics', () => {
         })
       })
 
-      it('should do nothing if the browser is not chrome', async () => {
-        mockUserAgent('safari')
-        await metrics.collect()
-        expect(fetch).not.toHaveBeenCalled()
-      })
-
       it('should not send cls if delta is 0', async () => {
         webVitalsMock.setClsDelta(0)
         await metrics.collect()
@@ -454,6 +450,13 @@ describe('Metrics', () => {
           ils: 2,
           ux: 'http://localhost/p/red-shoe',
         })
+      })
+
+      it('should send even when the browser is not chrome', async () => {
+        mockUserAgent('safari')
+        await metrics.collect()
+        await sleep(SEND_DELAY + 20)
+        expect(fetch).toHaveBeenCalled()
       })
     })
   })

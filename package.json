@@ -5,7 +5,7 @@
   "dependencies": {
     "lodash.debounce": "^4.0.8",
     "path-to-regexp": "^6.2.1",
-    "web-vitals": "^3.0.3"
+    "web-vitals": "^3.1.1"
   },
   "scripts": {
     "unyalc": "yalc remove --all",
