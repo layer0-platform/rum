@@ -1,7 +1,7 @@
 import { Metric, onTTFB, onFCP, onLCP, onFID, onCLS } from 'web-vitals'
 import { CACHE_MANIFEST_TTL, DEST_URL, SEND_DELAY } from './constants'
 import getCookieValue from './getCookieValue'
-import getServerTiming from './getServerTiming'
+import getServerTiming, { ServerTiming } from './getServerTiming'
 import Router from './Router'
 import uuid from './uuid'
 import debounce from 'lodash.debounce'
@@ -213,7 +213,7 @@ class BrowserMetrics implements Metrics {
    */
   private createPayload() {
     const timing = getServerTiming()
-    const edgioRoutes = timing['xrj']
+    const edgioRoutes = timing.xrj
     let pageLabel = this.options.pageLabel || this.options.router?.getPageLabel(this.originalURL)
 
     if (!pageLabel && edgioRoutes) {
@@ -240,7 +240,7 @@ class BrowserMetrics implements Metrics {
       }
     }
 
-    const data: any = {
+    const data = {
       ...this.metrics,
       i: this.index,
       u0: this.originalURL,
@@ -259,9 +259,9 @@ class BrowserMetrics implements Metrics {
       l: pageLabel, // for backwards compatibility
       l0: pageLabel,
       lx: this.getCurrentPageLabel(),
-      c: this.options.country || timing['country'],
+      c: this.options.country || timing.edge_country || timing.country,
       ct: this.connectionType,
-      epop: timing['edge_pop'],
+      epop: timing.edge_pop,
     }
 
     this.metrics = this.flushMetrics()
@@ -269,7 +269,7 @@ class BrowserMetrics implements Metrics {
     return JSON.stringify(data)
   }
 
-  getAppVersion(timing: any) {
+  getAppVersion(timing: ServerTiming) {
     return (
       this.options.appVersion ||
       timing['edgio-deployment-id'] ||
@@ -287,13 +287,32 @@ class BrowserMetrics implements Metrics {
     )
   }
 
-  isCacheHit(timing: any) {
+  isCacheHit(timing: ServerTiming) {
     if (this.options.cacheHit != null) {
       return this.options.cacheHit ? 1 : 0
     }
-    const cache = timing['edgio-cache'] || timing['layer0-cache'] || timing['xdn-cache']
-    if (cache?.includes('HIT')) return 1
-    return cache?.includes('MISS') ? 0 : null
+    
+    if (timing.edge_cache) {
+      if (timing.edge_cache?.includes('HIT')) {
+        return 1
+      } 
+  
+      if (timing.edge_cache?.includes('MISS')) {
+        return 0;
+      }
+    } else {
+      const cache = timing['edgio-cache'] || timing['layer0-cache'] || timing['xdn-cache']
+      
+      if (cache?.includes('HIT')) {
+        return 1
+      }
+
+      if (cache?.includes('MISS')) {
+        return 0;
+      }
+    }
+
+    return null
   }
 
   /**
@@ -335,6 +354,7 @@ class BrowserMetrics implements Metrics {
     }
 
     if (navigator.sendBeacon) {
+      // Why we use sendBea
       // Use `navigator.sendBeacon()` if available, falling back to `fetch()`.
       navigator.sendBeacon(this.sendTo, body)
     } else {
