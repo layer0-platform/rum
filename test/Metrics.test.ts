@@ -180,7 +180,34 @@ describe('Metrics', () => {
         }
       })
 
-      it('should use server-timing headers', () => {
+      it('should use server-timing headers EC edge', () => {
+        document.cookie = 'edgio_destination=A'
+
+        const metrics = new Metrics({
+          token: validToken,
+          cacheManifestTTL: 0,
+        })
+
+        timing = {
+          edge_cache: 'HIT',
+          xrj: '{ "path": "/p/:id" }',
+          edge_country: 'USA',
+        }
+
+        window.navigator.connection = { effectiveType: '4g' }
+
+        expect(JSON.parse(metrics.createPayload())).toEqual({
+          ...commonParams,
+          t: validToken,
+          ht: 1,
+          c: 'USA',
+          l: '/p/:id',
+          l0: '/p/:id',
+          ct: '4g',
+        })
+      })
+
+      it('should use server-timing headers Edgio edge', () => {
         document.cookie = 'edgio_destination=A'
 
         const metrics = new Metrics({
@@ -209,7 +236,7 @@ describe('Metrics', () => {
         })
       })
 
-      it('should use server-timing headers', () => {
+      it('should use server-timing headers XDN edge', () => {
         document.cookie = 'xdn_destination=A'
 
         // Try adding connection before the constructor for full code coverage
@@ -222,6 +249,36 @@ describe('Metrics', () => {
 
         timing = {
           'xdn-cache': 'L1-HIT',
+          'xdn-deployment-id': 'deployment-2',
+          xrj: '{ "path": "/p/:id" }',
+          country: 'USA',
+        }
+
+        expect(JSON.parse(metrics.createPayload())).toEqual({
+          ...commonParams,
+          t: validToken,
+          v: 'deployment-2',
+          ht: 1,
+          c: 'USA',
+          l: '/p/:id',
+          l0: '/p/:id',
+          ct: '4g',
+        })
+      })
+
+      it('should use layer0 mappings on server-timing headers (backward compatibility test)', () => {
+        document.cookie = 'xdn_destination=A'
+
+        // Try adding connection before the constructor for full code coverage
+        window.navigator.connection = { effectiveType: '4g' }
+
+        const metrics = new Metrics({
+          token: validToken,
+          cacheManifestTTL: 0,
+        })
+
+        timing = {
+          'edgio-cache': 'L1-HIT',
           'xdn-deployment-id': 'deployment-2',
           xrj: '{ "path": "/p/:id" }',
           country: 'USA',
@@ -277,6 +334,30 @@ describe('Metrics', () => {
           ...commonParams,
           ht: 1,
         })
+      })
+
+      it('should give correct values for ht (cache hit) on EC edge', () => {
+        timing = {}
+        let metrics
+
+        timing = { edge_cache: 'L1-HIT' }
+        metrics = new Metrics({ cacheManifestTTL: 0 })
+        expect(JSON.parse(metrics.createPayload())).toEqual({
+          ...commonParams,
+          ht: 1,
+        })
+
+        timing = { edge_cache: 'L1-MISS' }
+        metrics = new Metrics({ cacheManifestTTL: 0 })
+        expect(JSON.parse(metrics.createPayload())).toEqual({
+          ...commonParams,
+          ht: 0,
+        })
+      })
+
+      it('should give correct values for ht (cache hit) on EC edge', () => {
+        timing = {}
+        let metrics
 
         timing = { 'xdn-cache': 'L1-HIT' }
         metrics = new Metrics({ cacheManifestTTL: 0 })

@@ -1,6 +1,6 @@
 {
   "name": "@edgio/rum",
-  "version": "6.0.0",
+  "version": "7.0.0",
   "license": "UNLICENSED",
   "dependencies": {
     "lodash.debounce": "^4.0.8",
