@@ -1,4 +1,5 @@
 import { Metric, onTTFB, onFCP, onLCP, onFID, onCLS } from 'web-vitals'
+import { ReportOpts } from 'web-vitals/src/types'
 import { CACHE_MANIFEST_TTL, DEST_URL, SEND_DELAY } from './constants'
 import getCookieValue from './getCookieValue'
 import getServerTiming, { ServerTiming } from './getServerTiming'
@@ -132,9 +133,9 @@ class BrowserMetrics implements Metrics {
       return Promise.all([
         this.toPromise(onTTFB),
         this.toPromise(onFCP),
-        this.toPromise(onLCP, true), // setting true here ensures we get LCP immediately
+        this.toPromise(onLCP, { reportAllChanges: true }), // setting true here ensures we get LCP immediately
         this.toPromise(onFID),
-        this.toPromise(onCLS, true), // send all CLS measurements so we can track it over time and catch CLS during client-side navigation
+        this.toPromise(onCLS, { reportAllChanges: true }), // send all CLS measurements so we can track it over time and catch CLS during client-side navigation
       ]).then(() => {})
     } else {
       return Promise.resolve()
@@ -150,7 +151,7 @@ class BrowserMetrics implements Metrics {
    * @param getMetric
    * @param params
    */
-  private toPromise(getMetric: Function, ...params: any) {
+  private toPromise(getMetric: Function, params?: ReportOpts) {
     return new Promise<void>(resolve => {
       getMetric((metric: Metric) => {
         if (metric.delta === 0) {
@@ -291,24 +292,24 @@ class BrowserMetrics implements Metrics {
     if (this.options.cacheHit != null) {
       return this.options.cacheHit ? 1 : 0
     }
-    
+
     if (timing.edge_cache) {
       if (timing.edge_cache?.includes('HIT')) {
         return 1
-      } 
-  
+      }
+
       if (timing.edge_cache?.includes('MISS')) {
-        return 0;
+        return 0
       }
     } else {
       const cache = timing['edgio-cache'] || timing['layer0-cache'] || timing['xdn-cache']
-      
+
       if (cache?.includes('HIT')) {
         return 1
       }
 
       if (cache?.includes('MISS')) {
-        return 0;
+        return 0
       }
     }
 
