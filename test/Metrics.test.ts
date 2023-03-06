@@ -220,6 +220,7 @@ describe('Metrics', () => {
           'edgio-deployment-id': 'deployment-1',
           xrj: '{ "path": "/p/:id" }',
           country: 'USA',
+          asn: '15133',
         }
 
         window.navigator.connection = { effectiveType: '4g' }
@@ -233,6 +234,7 @@ describe('Metrics', () => {
           l: '/p/:id',
           l0: '/p/:id',
           ct: '4g',
+          asn: '15133',
         })
       })
 

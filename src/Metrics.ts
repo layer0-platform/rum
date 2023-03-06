@@ -195,7 +195,7 @@ class BrowserMetrics implements Metrics {
 
         /*
                   Note: we can get the elements that shifted from CLS events by:
-        
+
                   metric.entries[metric.entries.length - 1].sources
                     ?.filter((source: any) => source.node != null)
                     .map((source: any) => source.node.outerHTML)
@@ -263,6 +263,7 @@ class BrowserMetrics implements Metrics {
       c: this.options.country || timing.edge_country || timing.country,
       ct: this.connectionType,
       epop: timing.edge_pop,
+      asn: timing.asn,
     }
 
     this.metrics = this.flushMetrics()
