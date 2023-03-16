@@ -15,6 +15,7 @@ export type ServerTiming = {
   "layer0-deployment-id"?: string,
   "xdn-deployment-id"?: string,
   country?: string
+  asn?: string
 
   // These are the same between Layer0 and Sailfish
   edge_pop?: string
