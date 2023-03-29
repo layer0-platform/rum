@@ -189,9 +189,9 @@ describe('Metrics', () => {
         })
 
         timing = {
-          edge_cache: 'HIT',
+          edgio_cache: 'HIT',
           xrj: '{ "path": "/p/:id" }',
-          edge_country: 'USA',
+          edgio_country: 'USA',
         }
 
         window.navigator.connection = { effectiveType: '4g' }
@@ -342,14 +342,14 @@ describe('Metrics', () => {
         timing = {}
         let metrics
 
-        timing = { edge_cache: 'L1-HIT' }
+        timing = { edgio_cache: 'L1-HIT' }
         metrics = new Metrics({ cacheManifestTTL: 0 })
         expect(JSON.parse(metrics.createPayload())).toEqual({
           ...commonParams,
           ht: 1,
         })
 
-        timing = { edge_cache: 'L1-MISS' }
+        timing = { edgio_cache: 'L1-MISS' }
         metrics = new Metrics({ cacheManifestTTL: 0 })
         expect(JSON.parse(metrics.createPayload())).toEqual({
           ...commonParams,
