@@ -260,10 +260,13 @@ class BrowserMetrics implements Metrics {
       l: pageLabel, // for backwards compatibility
       l0: pageLabel,
       lx: this.getCurrentPageLabel(),
-      c: this.options.country || timing.edge_country || timing.country,
+      c:
+        this.options.country ||
+        timing.edgio_country /* current convention */ ||
+        timing.country /* Layer0's convention */,
       ct: this.connectionType,
-      epop: timing.edge_pop,
-      asn: timing.asn,
+      epop: timing.edgio_pop /* current convention */ || timing.edge_pop /* Layer0's convention */,
+      asn: timing.edgio_asn /* current convention */ || timing.asn /* Layer0's convention */,
     }
 
     this.metrics = this.flushMetrics()
@@ -294,15 +297,15 @@ class BrowserMetrics implements Metrics {
       return this.options.cacheHit ? 1 : 0
     }
 
-    if (timing.edge_cache) {
-      if (timing.edge_cache?.includes('HIT')) {
+    if (timing.edgio_cache != null) {
+      // Implementation for Edgio Application Platform
+      if (timing.edgio_cache?.includes('HIT')) {
         return 1
-      }
-
-      if (timing.edge_cache?.includes('MISS')) {
+      } else if (timing.edgio_cache != null) {
         return 0
       }
     } else {
+      // Implementation for legacy Layer0 platform
       const cache = timing['edgio-cache'] || timing['layer0-cache'] || timing['xdn-cache']
 
       if (cache?.includes('HIT')) {
