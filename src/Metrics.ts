@@ -1,6 +1,6 @@
 import { Metric, onTTFB, onFCP, onLCP, onFID, onCLS } from 'web-vitals'
 import { ReportOpts } from 'web-vitals/src/types'
-import { CACHE_MANIFEST_TTL, DEST_URL, SEND_DELAY } from './constants'
+import { DEST_URL, SEND_DELAY } from './constants'
 import getCookieValue from './getCookieValue'
 import getServerTiming, { ServerTiming } from './getServerTiming'
 import Router from './Router'
@@ -110,6 +110,7 @@ class BrowserMetrics implements Metrics {
     this.pageID = uuid()
     this.metrics = this.flushMetrics()
     this.splitTestVariant = this.getSplitTestVariant()
+
     try {
       // @ts-ignore
       this.connectionType = navigator.connection.effectiveType
@@ -119,10 +120,10 @@ class BrowserMetrics implements Metrics {
       }
     }
 
-    /* istanbul ignore else */
-    if (this.edgioEnvironmentID != null || location.hostname === 'localhost') {
-      this.manifest = new CacheManifest(options.cacheManifestTTL ?? CACHE_MANIFEST_TTL)
-    }
+    // TODO replace this with getting page labels from server-timing
+    // if (this.edgioEnvironmentID != null || location.hostname === 'localhost') {
+    //   this.manifest = new CacheManifest(options.cacheManifestTTL ?? CACHE_MANIFEST_TTL)
+    // }
   }
 
   collect() {
@@ -327,6 +328,7 @@ class BrowserMetrics implements Metrics {
    * @returns
    */
   private getCurrentPageLabel() {
+    // TODO get page labels from server-timing
     const manifest = this.manifest?.getRoutes() ?? []
 
     if (this.options.router) {
