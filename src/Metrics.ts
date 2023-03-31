@@ -8,7 +8,7 @@ import uuid from './uuid'
 import debounce from 'lodash.debounce'
 import getSelectorForElement from './getSelectorForElement'
 import CacheManifest from './CacheManifest'
-import { isServerTimingSupported } from './utils'
+import { getPlatform, isServerTimingSupported } from './utils'
 
 let rumClientVersion: string
 
@@ -120,7 +120,8 @@ class BrowserMetrics implements Metrics {
     }
 
     /* istanbul ignore else */
-    if (this.edgioEnvironmentID != null || location.hostname === 'localhost') {
+    if (getPlatform() !== 'edgio' && this.edgioEnvironmentID !== null) {
+      // On Edgio (v7+) we don't support cache manifest yet, so we don't need to initialize it
       this.manifest = new CacheManifest(options.cacheManifestTTL ?? CACHE_MANIFEST_TTL)
     }
   }

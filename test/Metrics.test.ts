@@ -91,6 +91,8 @@ describe('Metrics', () => {
       })
 
       it('should fall back to using the XDN cache manifest if present to determine the label', async () => {
+        // Simulate that we are on deployed app
+        cookies['layer0_environment_id_info'] = 'a28cfdde-6de2-4bd1-81e3'
         window.__XDN_CACHE_MANIFEST__ = [
           { route: '^.*$', criteriaPath: '/all', returnsResponse: false },
           { route: '^/help$', criteriaPath: '/help', returnsResponse: true },
@@ -130,6 +132,8 @@ describe('Metrics', () => {
           delete window.__XDN_CACHE_MANIFEST__
           webVitalsMock.setClsEntries([])
           webVitalsMock.setClsDelta(0)
+
+          delete cookies['layer0_environment_id_info']
         }
       })
 

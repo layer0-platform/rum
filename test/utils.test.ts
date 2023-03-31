@@ -1,6 +1,6 @@
-import { isChrome, isServerTimingSupported } from '../src/utils'
+import { getPlatform, isChrome, isServerTimingSupported } from '../src/utils'
 import { clear, mockUserAgent } from 'jest-useragent-mock'
-import mockPerformanceNavigation from "./utils/mockServerTimings";
+import mockPerformanceNavigation from './utils/mockServerTimings'
 
 describe('isChrome', () => {
   afterEach(clear)
@@ -21,8 +21,6 @@ describe('isChrome', () => {
 })
 
 describe('isServerTimingSupported', () => {
-
-
   it('is not supported', () => {
     // On browsers which don't support it, the serverTiming is undefined
     mockPerformanceNavigation([{ serverTiming: undefined }])
@@ -34,5 +32,31 @@ describe('isServerTimingSupported', () => {
     mockPerformanceNavigation([{ serverTiming: [] }])
 
     expect(isServerTimingSupported()).toBe(true)
+  })
+})
+
+describe('getPlatform', () => {
+  it('should return edgio', () => {
+    mockPerformanceNavigation([{ serverTiming: [{ name: 'edgio_cache' }] }])
+
+    expect(getPlatform()).toBe('edgio')
+  })
+
+  it('should return layer0', () => {
+    mockPerformanceNavigation([{ serverTiming: [{ name: 'layer0-cache' }] }])
+
+    expect(getPlatform()).toBe('layer0')
+  })
+
+  it('should return without proper serve timing header', () => {
+    mockPerformanceNavigation([{ serverTiming: [{ name: 'xxx' }] }])
+
+    expect(getPlatform()).toBe(null)
+  })
+
+  it('should return null', () => {
+    mockPerformanceNavigation([{ serverTiming: undefined }])
+
+    expect(getPlatform()).toBe(null)
   })
 })
