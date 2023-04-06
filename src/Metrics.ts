@@ -120,7 +120,7 @@ class BrowserMetrics implements Metrics {
     }
 
     /* istanbul ignore else */
-    if (!isV7orGreater() && this.edgioEnvironmentID !== null) {
+    if (!isV7orGreater() && !this.edgioEnvironmentID) {
       // On Edgio (v7+) we don't support cache manifest yet, so we don't need to initialize it
       this.manifest = new CacheManifest(options.cacheManifestTTL ?? CACHE_MANIFEST_TTL)
     }
