@@ -123,6 +123,7 @@ describe('Metrics', () => {
             fcp: 5,
             fid: 1,
             lcp: 3,
+            lx: "/",
             ttfb: 4,        
             clsel: ['body'],
             t: validToken,
@@ -396,6 +397,7 @@ describe('Metrics', () => {
         expect(url).toBe(`${DEST_URL}/${validToken}`)
         expect(JSON.parse(body)).toEqual({
           ...commonParams,
+          lx: "/",
           t: validToken,
         })
       })
