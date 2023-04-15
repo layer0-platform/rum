@@ -354,7 +354,11 @@ class BrowserMetrics implements Metrics {
       return
     }
 
-    if (!this.token.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)) {
+    if (
+      // UUID or HEX string is required
+      !this.token.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/) &&
+      !this.token.match(/^[0-9A-Fa-f]+$/)
+    ) {
       console.warn(`[RUM] Not sending rum entry because a token "${this.token}" is not valid.`)
       return
     }
