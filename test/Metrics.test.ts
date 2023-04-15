@@ -434,7 +434,7 @@ describe('Metrics', () => {
         )
         expect(fetch).not.toHaveBeenCalled()
       })
-      it('should not warn if a token valid hex', async () => {
+      it('should not warn if token is a valid hex', async () => {
         const fetch = (window.fetch = jest.fn())
         const hexToken = 'FFF'
         await new Metrics({ token: hexToken, cacheManifestTTL: 0 }).send()
