@@ -15,7 +15,6 @@
 #    - name: Build project
 #      run: npm run build
 
-
 #build RUM project
 name: Build RUM Project
 on: [push]
@@ -141,6 +140,4 @@ jobs:
       if: always()
       with:
         name: playwright-report
-        path: playwright-report/
-        retention-days: 30
-
+        path:
