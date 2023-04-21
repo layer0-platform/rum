@@ -434,6 +434,16 @@ describe('Metrics', () => {
         )
         expect(fetch).not.toHaveBeenCalled()
       })
+      it('should not warn if token is a valid hex', async () => {
+        const fetch = (window.fetch = jest.fn())
+        const hexToken = 'FFF'
+        await new Metrics({ token: hexToken, cacheManifestTTL: 0 }).send()
+        await sleep(SEND_DELAY + 20)
+        expect(warn).not.toHaveBeenCalledWith(
+          `[RUM] Not sending rum entry because a token "${hexToken}" is not valid.`
+        )
+        expect(fetch).toHaveBeenCalled()
+      })
     })
 
     describe('debug', () => {
