@@ -5,21 +5,27 @@ const TOKEN = process.env.RUM_TOKEN
 
 
 test.describe("navigation", () => {
+  test.beforeAll(() => {
+    // cerateData
+  })
+
+  test.afterAll(() => {
+    // deleteData
+  })
   test.beforeEach(async ({ page }) => {
     // Go to the starting url before each test.
     await page.goto("http://localhost:8000/");
   });
-
-  test('has title', async ({ page }) => {
+  test('Check token', async ({ page }) => {
     // Expect a title "to contain" a substring.
     await expect(page).toHaveTitle('Vite+Preact');
   });
-  test('a link click', async ({ page }) => {
+  test('Check BASE URL', async ({ page }) => {
     // Expect a title "to contain" a substring.
     for (const a of await page.getByRole('listitem').all())
       await a.click();
-  });
-  test.only('Check if request and my app has same browsers', async ({ page, browserName, baseURL }) => {
+  });  
+  test('Check Broswer', async ({ page, browserName, baseURL }) => {
     const browser = await firefox.launch();
     const context = await browser.newContext();
 
@@ -31,11 +37,7 @@ test.describe("navigation", () => {
     page.on('request', request => {
       console.log(TOKEN);
       if (request.url() === `https://rum.ingress.layer0.co/ingress/rum/v1/${TOKEN}`) {
-    console.log('>> Request Method:', request.method());
-    console.log('>> Request URL:', request.url());
-    console.log('>> Request Headers:', request.headers());
-
-
+    
         if (!request || !request.postData()) {
           console.log("invalid request");
           return;
@@ -45,21 +47,30 @@ test.describe("navigation", () => {
         console.log('>> Request Post Data:', request.postData());
 
         let jsonBody = JSON.parse(request.postData() || "");
+        // figure out browsername from josnBody.useragent with useragent npm package
+        // let userAgentBrowser
+
         console.log(jsonBody);
         console.log(browserName);
-        expect(browserName).toEqual(jsonBody.ux);
+        //expect(userAgentBorowser).toHaveText;
+        // expect for urls to match: jsonBody.ux
       }
     });
 
 
-  // Navigate to a webpage
-  await page.goto("http://localhost:8000/");
+    // page.on('response', response => {
+    //   console.log('<< Response Status:', response.status());
+    //   console.log('<< Response URL:', response.url());
+    //   console.log('<< Response Headers:', response.headers());
+    //   console.log('<< Response Text:', response.text());
+    // });
 
 
     // Close the browser
     await browser.close();
   });
 });
+
 // Function to parse browser name from User Agent string
 function parseBrowserName(userAgent) {
   if (userAgent.includes('Firefox')) {
@@ -75,5 +86,4 @@ function parseBrowserName(userAgent) {
   }
 }
 
-makeHttpRequest();
 

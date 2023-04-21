@@ -7,6 +7,14 @@
     <title>Vite+Preact</title>
   </head>
   <body>
+    <script defer>
+      function initEdgioRum() {
+        new Edgio.Metrics({
+          token: 'cea882df-d1bb-4547-8dce-5d0fc9a89d2b'
+        }).collect()
+      }
+    </script>
+    <script src="https://rum.layer0.co/latest.js" defer onload="initEdgioRum()"></script>
     <div id="app"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
