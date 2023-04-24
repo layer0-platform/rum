@@ -17,14 +17,14 @@ const getServerTiming = () => {
   return performance.getEntriesByType('navigation')[0].serverTiming
 }
 
-/** 
+/**
  * Indicates if the server timing is from a version 7 or greater of the Edgio App platform.
  * This function cannot guarantee that this is NOT v7 even when it is returning false as
  * it is possible that the server timing is not present and we cannot determine the version.
  */
 const isV7orGreater = () => {
   const serverTiming = getServerTiming()
-  
+
   if (!serverTiming) return false
 
   for (const t of serverTiming) {
@@ -34,7 +34,7 @@ const isV7orGreater = () => {
     }
   }
 
-  return false;
+  return false
 }
 
 export { isChrome, isServerTimingSupported, isV7orGreater, getServerTiming }

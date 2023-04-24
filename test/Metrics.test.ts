@@ -3,7 +3,7 @@ import { DEST_URL, SEND_DELAY } from '../src/constants'
 import Router from '../src/Router'
 import { clear, mockUserAgent } from 'jest-useragent-mock'
 import sleep from './utils/sleep'
-import mockPerformanceNavigation from "./utils/mockServerTimings";
+import mockPerformanceNavigation from './utils/mockServerTimings'
 
 const validToken = '12345678-1234-abcd-ef00-1234567890ab'
 
@@ -123,8 +123,8 @@ describe('Metrics', () => {
             fcp: 5,
             fid: 1,
             lcp: 3,
-            lx: "/",
-            ttfb: 4,        
+            lx: '/',
+            ttfb: 4,
             clsel: ['body'],
             t: validToken,
           })
@@ -397,7 +397,7 @@ describe('Metrics', () => {
         expect(url).toBe(`${DEST_URL}/${validToken}`)
         expect(JSON.parse(body)).toEqual({
           ...commonParams,
-          lx: "/",
+          lx: '/',
           t: validToken,
         })
       })
