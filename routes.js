@@ -32,6 +32,10 @@ module.exports = new Router()
     cache(TTL)
     serveStatic('cdn/:version', { permanent: true, exclude: ['latest.js'] })
   })
+  .get('/', ({ serveStatic, setResponseHeader }) => {
+    setResponseHeader('Content-Type', 'text/html; charset=UTF-8')
+    serveStatic('/public/homepage.html')
+  })
   .fallback(({ send }) => {
     send('', 404, 'not found')
   })

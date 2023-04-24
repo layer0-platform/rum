@@ -62,8 +62,8 @@
   "devDependencies": {
     "@babel/core": "^7.13.1",
     "@babel/preset-env": "^7.13.0",
-    "@edgio/cli": "^6.0.0",
-    "@edgio/core": "^6.0.0",
+    "@edgio/cli": "^6.1.4",
+    "@edgio/core": "^6.1.4",
     "@types/jest": "^29.2.0",
     "@types/lodash.debounce": "^4.0.6",
     "@types/ua-parser-js": "^0.7.35",
