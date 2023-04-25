@@ -39,22 +39,29 @@ jobs:
       run: npm ci
 
     - name: Build RUM project
-      run: npm run build          # build RUM
-
-    - name: Copy latest.js file
-      #run: cp path/to/latest.js . #zde bude cesta od cdn/latest do /test-latest
-
-    - name: Start Vite + Preact project
-      #neccesery path     ./integration-tests/test-latest
       working-directory: ./integration-tests/test-latest
-      run: npm ci         #It is neccessery to install packages for vite
-      run: npm run dev              # vite project start
+      run: npm run build && npx serve dist   #build me aplikace a zapnuti serveru
 
-    - name: Run Playwright tests
-      #neccesery path     ./integration-tests/test-latest/playwright-tests
+    - name: start playwright test
       working-directory: ./integration-tests/test-latest/playwright-tests
-      run: npm ci          #It is neccessery to install packages for playwright
-      run: npx playwright test      # start playwright tests
+      run: npx playwright test               #run playwright tests
+
+
+
+    # - name: Copy latest.js file
+    #   #run: cp path/to/latest.js . #zde bude cesta od cdn/latest do /test-latest
+
+    # - name: Start Vite + Preact project
+    #   #neccesery path     ./integration-tests/test-latest
+    #   working-directory: ./integration-tests/test-latest
+    #   run: npm ci         #It is neccessery to install packages for vite
+    #   run: npm run dev              # vite project start
+
+    # - name: Run Playwright tests
+    #   #neccesery path     ./integration-tests/test-latest/playwright-tests
+    #   working-directory: ./integration-tests/test-latest/playwright-tests
+    #   run: npm ci          #It is neccessery to install packages for playwright
+    #   run: npx playwright test      # start playwright tests
 
 
 
