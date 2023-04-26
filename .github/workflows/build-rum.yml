@@ -36,7 +36,7 @@ jobs:
         node-version: 16  # NODE JS version
 
     - name: Install dependencies
-      run: npm ci
+      run: npm ci --legacy-peer-deps
 
     - name: Build RUM project
       working-directory: ./integration-tests/test-latest
