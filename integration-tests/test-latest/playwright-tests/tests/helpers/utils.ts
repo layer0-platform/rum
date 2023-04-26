@@ -1,10 +1,7 @@
 // TODO: funkce ktera vrati rum request
 // vratit request nebo null
 
-
-const TOKEN = process.env.RUM_TOKEN
-
-export function getRumRequest(request) {
+export function getRumRequest(request) {  //testuje jeslti request je validni (neni pradny nebo obsahuje spravme data)
     if(request || request.postData()) {
         return true;  //RUM request je v poradku
     }

@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "use:latest": "cp ./index-latest.html ./index.html && cp ./src/app-latest.tsx ./src/app.tsx",
+    "use:npm-package": "cp ./index-empty.html ./index.html && cp ./src/app-npm-package.tsx ./src/app.tsx"
   },
   "dependencies": {
     "@edgio/rum": "^7.0.5",
