@@ -38,9 +38,11 @@ jobs:
     - name: Install dependencies
       run: npm ci --legacy-peer-deps
 
-    - name: Build RUM project
+    - name: GO TO RUM folder
       working-directory: ./integration-tests/test-latest
+    - name: RUM install packages
       run: npm i
+    - name: Build RUM project
       run: npm run build && npx serve dist   #build me aplikace a zapnuti serveru
 
     - name: start playwright test
