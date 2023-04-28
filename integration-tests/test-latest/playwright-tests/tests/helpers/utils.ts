@@ -12,8 +12,8 @@ export function getRumRequest(request) {  //testuje jeslti request je validni (n
 }
 
 // prevede UserAgentNameBrowser na browserEngineName
-export function parseUserAgentBrowserToBrowserEngineName(userAgent) {
-    if (userAgent.includes('Mozilla')) {
+export function parseBrowserNameToBrowserEngine(userAgent) {
+    if (userAgent.includes('Firefox')) {
       return 'firefox';
     } else if (userAgent.includes('Chrome')) {
       return 'chromium';
@@ -25,3 +25,10 @@ export function parseUserAgentBrowserToBrowserEngineName(userAgent) {
       return 'Unknown';
     }
   }
+
+export function convertToBool(currentRequestValue) {
+    if(currentRequestValue == 1) {
+        return true;
+    }
+    return false;
+}
