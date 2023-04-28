@@ -44,7 +44,7 @@ jobs:
 
     - name: start playwright test
       working-directory: ./integration-tests/test-latest/playwright-tests
-      run: npx playwright test               #run playwright tests
+      run: npm i && npx playwright test               #run playwright tests
 
 
 
