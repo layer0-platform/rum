@@ -40,7 +40,7 @@ jobs:
 
     - name: Build RUM project
       working-directory: ./integration-tests/test-latest
-      run: npm i && npm run build && npx serve dist   #build me aplikace a zapnuti serveru
+      run: npm i && npm run build && npx serve dist &   #build me aplikace a zapnuti serveru
 
     - name: start playwright test
       working-directory: ./integration-tests/test-latest/playwright-tests
