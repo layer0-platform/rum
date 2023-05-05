@@ -37,25 +37,25 @@ We have 2 build outputs of the package:
             - use latest.js file to get RUM request and load data 
         b. npm run use:npm-package
             - use package to load RUM request from @edgio/rum
-# VITE
+### VITE
 2. VITE project (run on port 3000 by default)
     - store in ./rum/integration-test/test-app
     - npm run dev (run vite project locally)
     - npm npm run build (build project and save into /dist)
 
-# Playwright
-3.Playwright 
+### Playwright
+3. Playwright 
 -   ./integrations-test/playwright-test/tests/example.spec.ts
         - in this file is implemented logic for playwright test (source code)
-        a. test.beforeAll() function
-            - start this function only one time at the beggining
-            - open browser
-            - catch request (RumRequest)
-        b. test() functions
-            - in this function is implemented code of current test
-        c. test.aftreAll() function
-            - start this function when all test are done
--   ./integrations-test/playwright-test/tests/helpers/utils.ts
+    -   test.beforeAll() function
+        - start this function only one time at the beggining
+        - open browser
+        - catch request (RumRequest)
+    -   test() functions
+        - in this function is implemented code of current test
+    -   test.aftreAll() function
+        - start this function when all test are done
+    -   ./integrations-test/playwright-test/tests/helpers/utils.ts
         - in this file are helpre functions
 -   commands:
     -   run playwright test

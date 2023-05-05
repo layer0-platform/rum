@@ -39,11 +39,11 @@ jobs:
       run: npm ci --legacy-peer-deps
 
     - name: Build Test project
-      working-directory: ./integration-tests/test-app
+      working-directory: ./integration-tests/app-test
       run: |              #build my app an turn on server
         npm i
         npm run build 
-        cp ./cdn/latest.js ./integration-tests/test-app/public
+        cp ./cdn/latest.js ./integration-tests/app-test/public
         npx serve dist &  
 
     - name: start playwright test
