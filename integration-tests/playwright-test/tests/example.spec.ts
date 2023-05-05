@@ -7,19 +7,19 @@ const TOKEN = process.env.RUM_TOKEN
 const WIDTH = 600;
 const HEIGHT = 600;
 
-//dat do jineho souboru a nacitat tyto data i v index.html souboru 
 const PAGE_LABEL = "my-label-page";  //page_label (l)
 const COUNTRY = "US";               //country (c)
 const APP_VERSION = "v1.0.0";       //app version(v)
 const HT = true;                    //CacheHit (ht)
 
 let page: Page;
-let jsonBodyGLOBAL: any;
+let jsonBodyGLOBAL: any;   //contain data from RumRequest.postData()
 
 test.describe("navigation", () => {
 
   let RumRequest: any;
 
+  //catch Rum request and save it
   test.beforeAll(async ({ baseURL }) => {
     const browser = await chromium.launch();
     page = await browser.newPage();
@@ -46,12 +46,6 @@ test.describe("navigation", () => {
   test.afterAll(({ browser }) => {
     browser.close()
   });
-
-
-  // porovnat ua z request a testovat s navigator.usarAgent v testu (TEST BROWSER)
-  // testovat  pokud jsou sluzby dostupne na nasem testovanem brosweru
-  // upravit vyhledavani chromu, firefox nebo safari
-  // upravit RUM-build.yml
 
   //v - capture application version which is being monitored (verze aplikace ktera je monitorovana)
   //cv - RUM version of library (verze edgio RUM)
@@ -107,7 +101,6 @@ test.describe("navigation", () => {
       expect(requestHt).toBe(HT);
     }
   });
-
   test('BODY - Correct url is present', async ({ baseURL }) => {
     if (getRumRequest(RumRequest)) {
       let originalURL = jsonBodyGLOBAL.u0;
@@ -122,7 +115,6 @@ test.describe("navigation", () => {
       console.log(TOKEN);
 
       console.log('>> Current Browser:', browserName);
-      //console.log('>> Request Post Data:', RumRequest.postData());
 
       let requestUserAgent = jsonBodyGLOBAL.ua;
       let requestUserAgentEngine = parseBrowserNameToBrowserEngine(requestUserAgent);
@@ -156,9 +148,7 @@ test.describe("navigation", () => {
 
       console.log("connection effectiveType: " + connectionEffectiveType);
     }
-
   });
-
 
 });
 

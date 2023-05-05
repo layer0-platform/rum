@@ -1,9 +1,7 @@
-// TODO: funkce ktera vrati rum request
-// vratit request nebo null
 
-export function getRumRequest(request) {  //testuje jeslti request je validni (neni pradny nebo obsahuje spravme data)
+export function getRumRequest(request) {  //testuje jestli request je validni (neni pradny nebo obsahuje spravne data)
     if(request || request.postData()) {
-        return true;  //RUM request je v poradku
+        return true;  //RUM request is OK
     }
     if (!request || !request.postData()) {
         console.log("invalid request");

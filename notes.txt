@@ -1,3 +1,0 @@
-1. build rum projektu 
-- npm run build (vytvori slozku "cdn" -> tady se ulozi latest.js soubor )
-
