@@ -41,7 +41,7 @@ jobs:
     - name: Build Test project
       working-directory: ./integration-tests/app-test
       run: |              #build my app an turn on server
-        npm i
+        npm i --legacy-peer-deps
         npm run build 
         cp ./cdn/latest.js ./integration-tests/app-test/public
         npx serve dist &  
@@ -49,7 +49,7 @@ jobs:
     - name: start playwright test
       working-directory: ./integration-tests/playwright-test
       run: |                      #run playwright tests 
-        npm i
+        npm i --legacy-peer-deps
         npx playwright test             
 
 
