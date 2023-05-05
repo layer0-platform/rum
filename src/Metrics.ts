@@ -127,6 +127,8 @@ class BrowserMetrics implements Metrics {
   }
 
   collect() {
+    this.sendPorkfishBeacon()
+
     if (isServerTimingSupported()) {
       // Server timing is not supported on browsers like Safari, this causes
       // our library report all Safari requests as Cache MISS, we need to change
@@ -140,6 +142,18 @@ class BrowserMetrics implements Metrics {
       ]).then(() => {})
     } else {
       return Promise.resolve()
+    }
+  }
+
+  /**
+   * Sends a beacon to Edgio Porkfish, which helps us improve anycast routing performance.
+   */
+  private sendPorkfishBeacon() {
+    try {
+      const uuid = crypto.randomUUID()
+      navigator.sendBeacon(`https://${uuid}.ac.bcon.ecdns.net/udp/${this.token}`)
+    } catch (e) {
+      console.warn('could not send beacon', e)
     }
   }
 
