@@ -33,9 +33,9 @@ We have 2 build outputs of the package:
 1. integration-tests.yml    
     - on pull request build project and run playwright tests
     - two options of get RUM request:
-        a. npm run use:latest
+        - npm run use:latest
             - use latest.js file to get RUM request and load data 
-        b. npm run use:npm-package
+        - npm run use:npm-package
             - use package to load RUM request from @edgio/rum
 ### VITE
 2. VITE project (run on port 3000 by default)
