@@ -1,6 +1,6 @@
 name: Run Tests
 
-on: [ push ]
+on: [push]
 
 jobs:
   test:
@@ -29,6 +29,7 @@ jobs:
       - run: npm i
       - run: npm run build
       - run: npm test
+      - run: npm run prettier:check
       - run: npm run lint
         env:
           CI: true

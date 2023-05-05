@@ -3,9 +3,9 @@
 import { DEST_URL, SEND_DELAY } from '../src/constants'
 import { clear, mockUserAgent } from 'jest-useragent-mock'
 import sleep from './utils/sleep'
-import mockPerformanceNavigation from "./utils/mockServerTimings";
+import mockPerformanceNavigation from './utils/mockServerTimings'
 
-const validToken = "12345678-1234-abcd-ef00-1234567890ab"
+const validToken = '12345678-1234-abcd-ef00-1234567890ab'
 
 describe('cdn', () => {
   let timing
@@ -65,7 +65,6 @@ describe('cdn', () => {
     })
 
     expect(fetch.mock.calls.length).toBe(1)
-
   })
 
   it('should export XDN.Metrics', () => {
