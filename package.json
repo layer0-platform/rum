@@ -1,6 +1,10 @@
 {
   "name": "@edgio/rum",
   "version": "7.0.7",
+  "workspaces": [
+    "integration-tests/app-test",
+    "integration-tests/playwright-test"
+  ],
   "license": "UNLICENSED",
   "dependencies": {
     "lodash.debounce": "^4.0.8",
