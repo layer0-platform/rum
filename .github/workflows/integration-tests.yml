@@ -1,0 +1,73 @@
+#name: Build RUM Project
+#on: [push]
+
+#jobs:
+#  build:
+#    runs-on: ubuntu-latest
+
+#    steps:
+#    - name: Checkout code
+#      uses: actions/checkout@v2
+
+#    - name: Install dependencies
+#      run: npm ci
+
+#    - name: Build project
+#      run: npm run build
+
+name: Intergration tests
+
+on:
+  pull_request:
+    branches:
+      - main  # Replace with the branch name you want to trigger the workflow on
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest  # Choose the appropriate runner for your needs
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16  # NODE JS version
+
+    - name: Install dependencies
+      run: npm ci --legacy-peer-deps
+
+    - name: Build Test project
+      working-directory: ./integration-tests/app-test
+      run: |              #build my app an turn on server
+        npm i --legacy-peer-deps
+        npm run build 
+        cp ./cdn/latest.js ./integration-tests/app-test/public
+        npx serve dist &  
+
+    - name: start playwright test
+      working-directory: ./integration-tests/playwright-test
+      run: |                      #run playwright tests 
+        npm i --legacy-peer-deps
+        npx playwright test             
+
+
+
+    # - name: Copy latest.js file
+    #   #run: cp path/to/latest.js . #zde bude cesta od cdn/latest do /test-latest
+
+    # - name: Start Vite + Preact project
+    #   #neccesery path     ./integration-tests/test-latest
+    #   working-directory: ./integration-tests/test-latest
+    #   run: npm ci         #It is neccessery to install packages for vite
+    #   run: npm run dev              # vite project start
+
+    # - name: Run Playwright tests
+    #   #neccesery path     ./integration-tests/test-latest/playwright-tests
+    #   working-directory: ./integration-tests/test-latest/playwright-tests
+    #   run: npm ci          #It is neccessery to install packages for playwright
+    #   run: npx playwright test      # start playwright tests
+
+
+
