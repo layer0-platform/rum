@@ -33,14 +33,11 @@ jobs:
           ${{ runner.os }}-
 
     - name: Install dependencies
-      run: | 
-        npm ci --legacy-peer-deps
+      run: npm ci --legacy-peer-deps
 
     - name: Build the RUM package
       run: |
-      # Build the latest.js file
         npm run build 
-      # Yalc the npm package 
         npm run push-build
 
     # Run the tests for latest.js
@@ -67,7 +64,6 @@ jobs:
         npm run ci:link
         npm run use:npm-package
         npm run build
-      # Kills the previous serve
         npx kill-port 3000
         npx serve dist &
 
