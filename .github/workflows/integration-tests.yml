@@ -33,7 +33,9 @@ jobs:
           ${{ runner.os }}-
 
     - name: Install dependencies
-      run: npm ci --legacy-peer-deps
+      run: |
+        npm ci --legacy-peer-deps
+        npm i -g yalc
 
     - name: Build the RUM package
       run: |

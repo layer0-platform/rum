@@ -83,7 +83,7 @@
     "lint-staged": "^10.5.4",
     "npm-watch": "^0.7.0",
     "prettier": "^2.7.1",
-    "ts-jest": "^26.5.6",
+    "ts-jest": "^29.0.3",
     "ts-loader": "^9.4.1",
     "typescript": "^4.8.4",
     "webpack": "^5.19.0",
