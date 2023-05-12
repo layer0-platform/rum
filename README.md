@@ -30,38 +30,30 @@ We have 2 build outputs of the package:
 
 ### Integration tests
 
-1. integration-tests.yml    
-    - on pull request build project and run playwright tests
-    - two options of get RUM request:
-        - npm run use:latest
-            - use latest.js file to get RUM request and load data 
-        - npm run use:npm-package
-            - use package to load RUM request from @edgio/rum
-### VITE
-2. VITE project (run on port 3000 by default)
-    - store in ./rum/integration-test/test-app
-    - npm run dev (run vite project locally)
-    - npm npm run build (build project and save into /dist)
+Install all dependencies:  
+- `cd integration-tests/playwright-test && npm install & cd ../..`
+- `cd integration-tests/app-test && npm install & cd ../..`
 
-### Playwright
-3. Playwright 
--   ./integrations-test/playwright-test/tests/example.spec.ts
-        - in this file is implemented logic for playwright test (source code)
-    -   test.beforeAll() function
-        - start this function only one time at the beggining
-        - open browser
-        - catch request (RumRequest)
-    -   test() functions
-        - in this function is implemented code of current test
-    -   test.aftreAll() function
-        - start this function when all test are done
-    -   ./integrations-test/playwright-test/tests/helpers/utils.ts
-        - in this file are helpre functions
--   commands:
-    -   run playwright test
-        - npx playwright test
-    -   show more information about done tests
-        - npx playwright show-report
+Running integration tests locally:
+1. Open three terminals in the root of the project
+2. Terminal 1#, 
+   - run `npm run push-build`
+      - This will yalc your local build of rum package
+3. Terminal 2#:
+   - Go to `cd integration-tests/app-test` 
+   - Run `npm run ci:link` 
+   - Run `npm run dev` runs the project on port 3000
+4. Terminal 3#:
+   - Go to `cd integration-tests/playwright-test`
+   - Run `npm run test`
+
+
+#### Setup info
+
+In the app tests we can test both outputs of the RUM (CDN and NPM package).
+You can control this by running inside the `integration-tests/app-test` folder:  
+- `npm run use:latest` for using the latest.js file (You need to put in public folder)
+- `npm run use:npm-package` for using the npm package (You need to yalc it )
     
 
 

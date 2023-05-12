@@ -1,17 +1,17 @@
 {
-  "name": "vite-project",
+  "name": "app-test",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview",
+    "ci:link": "yalc add @edgio/rum",
     "use:latest": "cp ./index-latest.html ./index.html && cp ./src/app-latest.tsx ./src/app.tsx",
     "use:npm-package": "cp ./index-empty.html ./index.html && cp ./src/app-npm-package.tsx ./src/app.tsx"
   },
   "dependencies": {
-    "@edgio/rum": "^7.0.5",
+    "@edgio/rum": "file:.yalc/@edgio/rum",
     "preact": "^10.13.0",
     "preact-router": "^4.1.0"
   },

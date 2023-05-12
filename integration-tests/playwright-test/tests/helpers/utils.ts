@@ -1,16 +1,15 @@
 
-export function getRumRequest(request) {  //testuje jestli request je validni (neni pradny nebo obsahuje spravne data)
-    if(request || request.postData()) {
-        return true;  //RUM request is OK
+export function getRumRequestData(request: any) {
+    if(request && request.postData()) {
+        return JSON.parse(request.postData());
     }
     if (!request || !request.postData()) {
-        console.log("invalid request");
+        console.error("invalid request");
         return null;
     }
 }
 
-// prevede UserAgentNameBrowser na browserEngineName
-export function parseBrowserNameToBrowserEngine(userAgent) {
+export function parseBrowserNameToBrowserEngine(userAgent: any) {
     if (userAgent.includes('Firefox')) {
       return 'firefox';
     } else if (userAgent.includes('Chrome')) {
@@ -24,9 +23,6 @@ export function parseBrowserNameToBrowserEngine(userAgent) {
     }
   }
 
-export function convertToBool(currentRequestValue) {
-    if(currentRequestValue == 1) {
-        return true;
-    }
-    return false;
+export function convertToBool(currentRequestValue: any) {
+    return currentRequestValue == 1;
 }
