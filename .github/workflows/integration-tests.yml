@@ -48,7 +48,7 @@ jobs:
       working-directory: ./integration-tests/app-test
       run: |
         npm i --legacy-peer-deps
-        cp ./cdn/latest.js ./integration-tests/app-test/public/latest.js
+        cp ../../cdn/latest.js ./integration-tests/app-test/public/latest.js
         npm run use:latest
         npm run build 
         npx serve dist &
