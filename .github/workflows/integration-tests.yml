@@ -42,8 +42,10 @@ jobs:
         npm run build 
         npm run push-build
 
-    # Run the tests for latest.js
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
 
+      # Run the tests for latest.js
     - name: Build Test project - with latest.js
       working-directory: ./integration-tests/app-test
       run: |
