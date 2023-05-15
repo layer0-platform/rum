@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import { firefox, chromium, webkit } from '@playwright/test';
+import { chromium } from '@playwright/test';
 import { parseBrowserNameToBrowserEngine, getRumRequestData, convertToBool } from "./helpers/utils"
 
 const TOKEN = "cea882df-d1bb-4547-8dce-5d0fc9a89d2b"
@@ -45,37 +45,37 @@ test.describe("RUM - Request data", () => {
     browser.close()
   });
 
-  test('REQUEST URL - RUM fires request to correct URL', async ({ }) => {
+  test('REQUEST URL - RUM fires request to correct URL', async () => {
       const correctURL = `https://rum.ingress.layer0.co/ingress/rum/v1/${TOKEN}`;
       expect(RumRequest.url()).toBe(correctURL)
   });
 
-  test('BODY - Browser HEIGHT/WIDTH', async ({ }) => {
+  test('BODY - Browser HEIGHT/WIDTH', async () => {
       expect(RumRequestBody.w).toBe(WIDTH);
       expect(RumRequestBody.h).toBe(HEIGHT);
   });
 
-  test('BODY - Document Title', async ({ }) => {
+  test('BODY - Document Title', async () => {
       expect(page).toHaveTitle(RumRequestBody.t);
   });
 
-  test('BODY - Correct token is present', async ({ }) => {
+  test('BODY - Correct token is present', async () => {
       expect(RumRequestBody.t).toBe(TOKEN);
   });
 
-  test('BODY - Correct label', async ({ }) => {
+  test('BODY - Correct label', async () => {
       expect(RumRequestBody.l).toBe(PAGE_LABEL);
   });
 
-  test('BODY - Correct country', async ({ }) => {
+  test('BODY - Correct country', async () => {
       expect(RumRequestBody.c).toBe(COUNTRY);
   });
 
-  test('BODY - Correct app version', async ({ }) => {
+  test('BODY - Correct app version', async () => {
       expect(RumRequestBody.v).toBe(APP_VERSION);
   });
 
-  test('BODY - Correct isCacheHit', async ({ }) => {
+  test('BODY - Correct isCacheHit', async () => {
       let requestHt = convertToBool(RumRequestBody.ht);
       expect(requestHt).toBe(HT);
   });
