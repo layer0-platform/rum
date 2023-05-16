@@ -52,6 +52,7 @@ jobs:
         npm run build 
         npx serve dist &
 
+    # TODO: We need to optimize this step, it takes too long
     - name: Install dependencies for the integration tests
       working-directory: ./integration-tests/playwright-test
       run: |
