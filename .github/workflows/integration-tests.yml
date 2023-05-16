@@ -52,11 +52,15 @@ jobs:
         npm run build 
         npx serve dist &
 
-    - name: Run the integration tests against latest.js
+    - name: Install dependencies for the integration tests
       working-directory: ./integration-tests/playwright-test
       run: |
         npm i --legacy-peer-deps
-        npx playwright install --with-deps
+        npx playwright install
+
+    - name: Run the integration tests against latest.js
+      working-directory: ./integration-tests/playwright-test
+      run: |
         npm run test           
 
     # Run the tests for npm package
