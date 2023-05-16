@@ -1,0 +1,80 @@
+name: Integration tests
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16  # NODE JS version
+
+    - name: Cache node modules
+      uses: actions/cache@v3
+      env:
+        cache-name: cache-node-modules-integration-tests
+      with:
+        path: |
+          node_modules
+          */*/node_modules
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('package-lock.json', 'integration-tests/**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
+
+    - name: Install dependencies
+      run: |
+        npm ci --legacy-peer-deps
+        npm i -g yalc
+
+    - name: Build the RUM package
+      run: |
+        npm run build 
+        npm run push-build
+
+      # Run the tests for latest.js
+    - name: Build Test project - with latest.js
+      working-directory: ./integration-tests/app-test
+      run: |
+        npm i --legacy-peer-deps
+        cp ../../cdn/latest.js ./public/latest.js
+        npm run use:latest
+        npm run build 
+        npx serve dist &
+
+    # TODO: We need to optimize this step, it takes too long
+    - name: Install dependencies for the integration tests
+      working-directory: ./integration-tests/playwright-test
+      run: |
+        npm i --legacy-peer-deps
+        npx playwright install --with-deps
+
+    - name: Run the integration tests against latest.js
+      working-directory: ./integration-tests/playwright-test
+      run: |
+        npm run test           
+
+    # Run the tests for npm package
+    - name: Build Test project - with npm package
+      working-directory: ./integration-tests/app-test
+      run: |
+        npm run ci:link
+        npm run use:npm-package
+        npm run build
+        npx kill-port 3000
+        npx serve dist &
+
+    - name: Run the integration tests against npm package
+      working-directory: ./integration-tests/playwright-test
+      run: |
+        npm run test
