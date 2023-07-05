@@ -1,0 +1,1 @@
+export { CookiesInfo } from './CookiesInfo';

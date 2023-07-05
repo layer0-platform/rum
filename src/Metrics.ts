@@ -9,6 +9,7 @@ import debounce from 'lodash.debounce'
 import getSelectorForElement from './getSelectorForElement'
 import CacheManifest from './CacheManifest'
 import { isV7orGreater, isServerTimingSupported } from './utils'
+import { CookiesInfo } from './CookiesInfo'
 
 let rumClientVersion: string
 
@@ -97,10 +98,11 @@ class BrowserMetrics implements Metrics {
   private index: number = 0
   private clientNavigationHasOccurred: boolean = false
   private edgioEnvironmentID?: string
-  private splitTestVariant?: string
+  private destination?: string
   private connectionType?: string
   private manifest?: CacheManifest
-
+  private cookiesInfo: CookiesInfo;
+  
   constructor(options: MetricsOptions = {}) {
     this.originalURL = location.href
     this.options = options
@@ -109,7 +111,7 @@ class BrowserMetrics implements Metrics {
     this.sendTo = `${this.options.sendTo || DEST_URL}/${this.token}`
     this.pageID = uuid()
     this.metrics = this.flushMetrics()
-    this.splitTestVariant = this.getSplitTestVariant()
+    this.cookiesInfo = new CookiesInfo()
     try {
       // @ts-ignore
       this.connectionType = navigator.connection.effectiveType
@@ -241,8 +243,8 @@ class BrowserMetrics implements Metrics {
       }
     }
 
-    if (!this.splitTestVariant) {
-      this.splitTestVariant = this.getSplitTestVariant()
+    if (!this.destination) {
+      this.destination = this.getDestination()
     }
 
     if (!this.connectionType) {
@@ -265,7 +267,7 @@ class BrowserMetrics implements Metrics {
       pid: this.pageID,
       t: this.token,
       ti: document.title,
-      d: this.splitTestVariant,
+      d: this.destination,
       ua: navigator.userAgent,
       w: window.screen.width,
       h: window.screen.height,
@@ -282,6 +284,14 @@ class BrowserMetrics implements Metrics {
       ct: this.connectionType,
       epop: timing.edgio_pop /* current convention */ || timing.edge_pop /* Layer0's convention */,
       asn: timing.edgio_asn /* current convention */ || timing.asn /* Layer0's convention */,
+
+      // exriment data if exists, as this is relayed to cookies
+      // it could be possible to have multiple experiments
+      // we currently only support one
+      // todo: check with a product
+      exp: this.cookiesInfo.splitTestingCookies.length > 0
+        ? this.cookiesInfo.splitTestingCookies[0]
+        : undefined,
     }
 
     this.metrics = this.flushMetrics()
@@ -298,7 +308,7 @@ class BrowserMetrics implements Metrics {
     )
   }
 
-  getSplitTestVariant() {
+  getDestination() {
     return (
       this.options.splitTestVariant ||
       getCookieValue('edgio_destination') ||
