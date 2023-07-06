@@ -211,14 +211,13 @@ class BrowserMetrics implements Metrics {
         }
 
         /*
-                  Note: we can get the elements that shifted from CLS events by:
+          Note: we can get the elements that shifted from CLS events by:
 
-                  metric.entries[metric.entries.length - 1].sources
-                    ?.filter((source: any) => source.node != null)
-                    .map((source: any) => source.node.outerHTML)
-                    .join(', ')
-                */
-
+          metric.entries[metric.entries.length - 1].sources
+            ?.filter((source: any) => source.node != null)
+            .map((source: any) => source.node.outerHTML)
+            .join(', ')
+        */
         this.send()
 
         resolve()
@@ -284,19 +283,21 @@ class BrowserMetrics implements Metrics {
       ct: this.connectionType,
       epop: timing.edgio_pop /* current convention */ || timing.edge_pop /* Layer0's convention */,
       asn: timing.edgio_asn /* current convention */ || timing.asn /* Layer0's convention */,
-
-      // exriment data if exists, as this is relayed to cookies
-      // it could be possible to have multiple experiments
-      // we currently only support one
-      // todo: check with a product
-      exp: this.cookiesInfo.splitTestingCookies.length > 0
-        ? this.cookiesInfo.splitTestingCookies[0]
-        : undefined,
+      x: this.getSplitTesting(),
     }
 
     this.metrics = this.flushMetrics()
 
     return JSON.stringify(data)
+  }
+
+  getSplitTesting() {
+    if (this.cookiesInfo.splitTestingCookies.length === 0) {
+      return undefined
+    }
+
+    return this.cookiesInfo.splitTestingCookies
+      .map(cookie => ({ e: cookie.experimentId, v: cookie.variantId }))
   }
 
   getAppVersion(timing: ServerTiming) {

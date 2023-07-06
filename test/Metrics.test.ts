@@ -316,7 +316,7 @@ describe('Metrics', () => {
       })
 
       it('should parse information about split testing from the predefined cookie format', () => {
-        mockCookieFunction.mockReturnValue('x-edg-experiment-super_exp123=red_var123; edgio_destination=A')
+        mockCookieFunction.mockReturnValue('x-edg-experiment-super_exp123=red_var123; x-edg-experiment-test_test123=blue_var789;  edgio_destination=A')
 
         const metrics = new Metrics({
           token: validToken,
@@ -338,14 +338,15 @@ describe('Metrics', () => {
           c: 'USA',
           l: '/p/:id',
           l0: '/p/:id',
-          exp: {
-            key: 'x-edg-experiment-super_exp123',
-            value: 'red_var123',
-            experimentName: 'super',
-            experimentId: 'exp123',
-            variantName: 'red',
-            variantId: 'var123',
+          x: [
+          {
+            e: 'exp123',
+            v: 'var123',
           },
+          {
+            e: 'test123',
+            v: 'var789',
+          }],
         })
       })
 

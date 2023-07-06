@@ -42,6 +42,7 @@ Running integration tests locally:
 3. Terminal 2#:
    - Go to `cd integration-tests/app-test` 
    - Run `npm run ci:link` 
+   - Run `npm install` 
    - Run `npm run dev` runs the project on port 3000
 4. Terminal 3#:
    - Go to `cd integration-tests/playwright-test`

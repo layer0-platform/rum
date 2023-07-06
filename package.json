@@ -48,7 +48,9 @@
       "js",
       "json"
     ],
-    "modulePathIgnorePatterns": ["integration-tests"],
+    "modulePathIgnorePatterns": [
+      "integration-tests"
+    ],
     "transformIgnorePatterns": [
       "<rootDir>/node_modules/"
     ],
