@@ -5,15 +5,15 @@ import './app.css'
 import { Metrics } from '@edgio/rum'
 import Routes from './views/routes'
 
-//added RUM
  const RUM_TOKEN = "cea882df-d1bb-4547-8dce-5d0fc9a89d2b"
- new Metrics({
+ const metrics = new Metrics({
    token: RUM_TOKEN,
    pageLabel: "my-label-page",
    appVersion: 'v1.0.0',
    cacheHit: true,
    country: 'US'
-}).collect()
+})
+metrics.collect()
 
 export function App() {
   const [count, setCount] = useState(0)

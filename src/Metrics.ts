@@ -19,6 +19,133 @@ try {
   rumClientVersion = 'development'
 }
 
+export interface MetricsPayload {
+  /**
+   * All unknown properties that are sent as metrics
+   */
+  [name: string]: number | string | string[] | undefined | null | {};
+
+  /**  
+   * Index of the metric in the current page that is sent
+   * */
+  i: number;
+  
+  /**
+   *  Original Url 
+   * */
+  u0: string;
+
+  /**  
+   * Client navigation has occurred
+   * */
+  cn: number;
+
+  /**
+   * Current page location (href)
+   */
+  ux: string;
+
+  /**
+   * Page Id
+   */
+  pid: string;
+  
+  /**
+   * Token value
+   */
+  t?: string;
+
+  /**
+   * Document title
+   * */
+  ti: string;
+
+  /**
+   * Edgio destination, used in Layer0 for split testing
+   */
+  d?: string;
+
+  /**
+   * User agent
+   */
+  ua: string;
+
+  /**
+   * Window screen width
+   */
+  w: number;
+
+  /**
+   * Window screen height
+   */
+  h?: number;
+
+  /**
+   * Application version, derived from deployment (Layer0/Edgio) ID
+   **/
+  v?: string;
+
+  /** 
+   * Rum client version
+   * */
+  cv: string;
+
+  /**
+   * Indicates whether it is a cache hit or miss, 1 is for hit, 0 is for miss, null is for not applicable 
+   */
+  ht: number | null;
+
+  /**
+   * Page label. for backward compatibility
+   */
+  l?: string;
+
+  /**
+   * Page label, either from passed from options, or from routes
+   * */
+  l0?: string;
+
+  /**
+   * Page label, either from passed router in options, or from cache manifest (which is depricated on Edgio)
+   **/
+  lx?: string;
+  
+  /**
+   * Country
+   */
+  c?: string;
+
+  /**
+   * Connection type
+   */
+  ct?: string;
+
+  /**
+   * Edgio pop from timing header
+   * */
+  epop?: string;
+  
+  /**
+   * Asn from timing header
+    **/
+  asn?: string;
+  
+  /**
+   * Edgio experiment from traffic split
+   * */
+  x?: ({
+    /**
+     * Experiment ID
+     */
+    e: string;
+
+    /**
+     * Variant ID
+     */
+    v: string;
+  })[];
+}
+
 export interface MetricsOptions {
   /**
    * Your Edgio RUM site token,
@@ -112,6 +239,7 @@ class BrowserMetrics implements Metrics {
     this.pageID = uuid()
     this.metrics = this.flushMetrics()
     this.cookiesInfo = new CookiesInfo()
+    
     try {
       // @ts-ignore
       this.connectionType = navigator.connection.effectiveType
@@ -131,20 +259,19 @@ class BrowserMetrics implements Metrics {
   collect() {
     this.sendPorkfishBeacon()
 
-    if (isServerTimingSupported()) {
-      // Server timing is not supported on browsers like Safari, this causes
-      // our library report all Safari requests as Cache MISS, we need to change
-      // how we handle MISS/HIT ration in the RUM Edgio BE
-      return Promise.all([
-        this.toPromise(onTTFB),
-        this.toPromise(onFCP),
-        this.toPromise(onLCP, { reportAllChanges: true }), // setting true here ensures we get LCP immediately
-        this.toPromise(onFID),
-        this.toPromise(onCLS, { reportAllChanges: true }), // send all CLS measurements so we can track it over time and catch CLS during client-side navigation
-      ]).then(() => {})
-    } else {
+    // Server timing is not supported on browsers like Safari, this causes
+    // our library report all Safari requests as Cache MISS, we need to change
+    // how we handle MISS/HIT ration in the RUM Edgio BE
+    if (!isServerTimingSupported())
       return Promise.resolve()
-    }
+     
+    return Promise.all([
+      this.toPromise(onTTFB),
+      this.toPromise(onFCP),
+      this.toPromise(onLCP, { reportAllChanges: true }), // setting true here ensures we get LCP immediately
+      this.toPromise(onFID),
+      this.toPromise(onCLS, { reportAllChanges: true }), // send all CLS measurements so we can track it over time and catch CLS during client-side navigation
+    ]).then(() => {})
   }
 
   /**
@@ -257,7 +384,7 @@ class BrowserMetrics implements Metrics {
       }
     }
 
-    const data = {
+    const data: MetricsPayload = {
       ...this.metrics,
       i: this.index,
       u0: this.originalURL,
