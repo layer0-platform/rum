@@ -8,6 +8,17 @@ import Routes from './views/routes'
 export function App() {
   const [count, setCount] = useState(0)
 
+  const handleClick = () => {
+    setCount((count) => count + 1)
+    Edgio.trackConversion({
+      token: "cea882df-d1bb-4547-8dce-5d0fc9a89d2b",
+      event: 'my-event',
+      payload: {
+        email: "test@test.com"
+      }
+    })
+  }
+
   return (
     <>
     <Routes/>
@@ -22,7 +33,7 @@ export function App() {
       </div>
       <h1>Vite + Preact</h1>
       <div class="card">
-        <button onClick={() => setCount((count) => count + 1)}>
+        <button id="counterButton" onClick={handleClick}>
           count is {count}
         </button>
         <p>

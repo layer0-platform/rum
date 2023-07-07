@@ -46,6 +46,7 @@ Running integration tests locally:
    - Run `npm run dev` runs the project on port 3000
 4. Terminal 3#:
    - Go to `cd integration-tests/playwright-test`
+   - Run `nmp install`
    - Run `npm run test`
 
 

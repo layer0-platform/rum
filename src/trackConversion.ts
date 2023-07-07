@@ -19,7 +19,7 @@ export interface TrackConversionOptions {
      * that can be used to segment your audience. For example, you could send the user's email
      * address to Edgio so that you can segment your audience by email address.
      **/
-    payload: {
+    payload?: {
         [key: string]: any
     }
 }
@@ -28,9 +28,9 @@ export interface TrackConversionOptions {
  * Allows you to track a conversion event by sending an event name to Edgio for a given site.
  * @param options Options for the trackConversion function
  */
-export const trackConversion = async (options: TrackConversionOptions) => {
-    const sendTo =  `${DEST_URL}/${options.token}/conversion}`;
-    const body = JSON.stringify({ event: options.event })
+const trackConversion = async (options: TrackConversionOptions) => {
+    const sendTo =  `${DEST_URL}/${options.token}/conversion`;
+    const body = JSON.stringify({ event: options.event, payload: options.payload })
     
     try {
         // Attempt to send the conversion event to Edgio
@@ -51,3 +51,5 @@ export const trackConversion = async (options: TrackConversionOptions) => {
         console.error(`Failed to send conversion event to Edgio. ${e}`);
     }    
 }
+
+export default trackConversion;

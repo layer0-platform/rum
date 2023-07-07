@@ -1,5 +1,6 @@
 import Metrics from './Metrics'
 import Router from './Router'
+import trackConversion from './trackConversion';
 
 /*
  * Example:
@@ -25,6 +26,7 @@ if (typeof window !== 'undefined') {
   const Edgio = ((window as any).Edgio = {
     Metrics,
     Router,
+    trackConversion,
   })
 
   // for XDN backwards compatibility
