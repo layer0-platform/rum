@@ -10,6 +10,7 @@ export function App() {
 
   const handleClick = () => {
     setCount((count) => count + 1)
+    // @ts-ignore
     Edgio.trackConversion({
       token: "cea882df-d1bb-4547-8dce-5d0fc9a89d2b",
       event: 'my-event',
