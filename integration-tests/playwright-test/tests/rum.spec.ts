@@ -29,7 +29,7 @@ test.describe("RUM - Request data", () => {
 
       //check if RUM request was sent
       page.on('request', request => {
-        if (request.url().startsWith("https://rum.ingress.layer0.co/ingress/rum/v1/")) {
+        if (request.url().startsWith("https://rum.ingress.edgio.net/v1/")) {
           resolve(request);
         }
       });
@@ -46,7 +46,7 @@ test.describe("RUM - Request data", () => {
   });
 
   test('REQUEST URL - RUM fires request to correct URL', async () => {
-      const correctURL = `https://rum.ingress.layer0.co/ingress/rum/v1/${TOKEN}`;
+      const correctURL = `https://rum.ingress.edgio.net/v1/${TOKEN}`;
       expect(RumRequest.url()).toBe(correctURL)
   });
 
