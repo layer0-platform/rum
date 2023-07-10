@@ -9,6 +9,7 @@ import debounce from 'lodash.debounce'
 import getSelectorForElement from './getSelectorForElement'
 import CacheManifest from './CacheManifest'
 import { isV7orGreater, isServerTimingSupported } from './utils'
+import { CookiesInfo } from './CookiesInfo'
 
 let rumClientVersion: string
 
@@ -16,6 +17,133 @@ try {
   rumClientVersion = require('./package.json').version
 } catch (e) {
   rumClientVersion = 'development'
+}
+
+export interface MetricsPayload {
+  /**
+   * All unknown properties that are sent as metrics
+   */
+  [name: string]: number | string | string[] | undefined | null | {};
+
+  /**  
+   * Index of the metric in the current page that is sent
+   * */
+  i: number;
+  
+  /**
+   *  Original Url 
+   * */
+  u0: string;
+
+  /**  
+   * Client navigation has occurred
+   * */
+  cn: number;
+
+  /**
+   * Current page location (href)
+   */
+  ux: string;
+
+  /**
+   * Page Id
+   */
+  pid: string;
+  
+  /**
+   * Token value
+   */
+  t?: string;
+
+  /**
+   * Document title
+   * */
+  ti: string;
+
+  /**
+   * Edgio destination, used in Layer0 for split testing
+   */
+  d?: string;
+
+  /**
+   * User agent
+   */
+  ua: string;
+
+  /**
+   * Window screen width
+   */
+  w: number;
+
+  /**
+   * Window screen height
+   */
+  h?: number;
+
+  /**
+   * Application version, derived from deployment (Layer0/Edgio) ID
+   **/
+  v?: string;
+
+  /** 
+   * Rum client version
+   * */
+  cv: string;
+
+  /**
+   * Indicates whether it is a cache hit or miss, 1 is for hit, 0 is for miss, null is for not applicable 
+   */
+  ht: number | null;
+
+  /**
+   * Page label. for backward compatibility
+   */
+  l?: string;
+
+  /**
+   * Page label, either from passed from options, or from routes
+   * */
+  l0?: string;
+
+  /**
+   * Page label, either from passed router in options, or from cache manifest (which is depricated on Edgio)
+   **/
+  lx?: string;
+  
+  /**
+   * Country
+   */
+  c?: string;
+
+  /**
+   * Connection type
+   */
+  ct?: string;
+
+  /**
+   * Edgio pop from timing header
+   * */
+  epop?: string;
+  
+  /**
+   * Asn from timing header
+    **/
+  asn?: string;
+  
+  /**
+   * Edgio experiment from traffic split
+   * */
+  x?: ({
+    /**
+     * Experiment ID
+     */
+    e: string;
+
+    /**
+     * Variant ID
+     */
+    v: string;
+  })[];
 }
 
 export interface MetricsOptions {
@@ -97,10 +225,11 @@ class BrowserMetrics implements Metrics {
   private index: number = 0
   private clientNavigationHasOccurred: boolean = false
   private edgioEnvironmentID?: string
-  private splitTestVariant?: string
+  private destination?: string
   private connectionType?: string
   private manifest?: CacheManifest
-
+  private cookiesInfo: CookiesInfo;
+  
   constructor(options: MetricsOptions = {}) {
     this.originalURL = location.href
     this.options = options
@@ -109,7 +238,8 @@ class BrowserMetrics implements Metrics {
     this.sendTo = `${this.options.sendTo || DEST_URL}/${this.token}`
     this.pageID = uuid()
     this.metrics = this.flushMetrics()
-    this.splitTestVariant = this.getSplitTestVariant()
+    this.cookiesInfo = new CookiesInfo()
+    
     try {
       // @ts-ignore
       this.connectionType = navigator.connection.effectiveType
@@ -129,20 +259,19 @@ class BrowserMetrics implements Metrics {
   collect() {
     this.sendPorkfishBeacon()
 
-    if (isServerTimingSupported()) {
-      // Server timing is not supported on browsers like Safari, this causes
-      // our library report all Safari requests as Cache MISS, we need to change
-      // how we handle MISS/HIT ration in the RUM Edgio BE
-      return Promise.all([
-        this.toPromise(onTTFB),
-        this.toPromise(onFCP),
-        this.toPromise(onLCP, { reportAllChanges: true }), // setting true here ensures we get LCP immediately
-        this.toPromise(onFID),
-        this.toPromise(onCLS, { reportAllChanges: true }), // send all CLS measurements so we can track it over time and catch CLS during client-side navigation
-      ]).then(() => {})
-    } else {
+    // Server timing is not supported on browsers like Safari, this causes
+    // our library report all Safari requests as Cache MISS, we need to change
+    // how we handle MISS/HIT ration in the RUM Edgio BE
+    if (!isServerTimingSupported())
       return Promise.resolve()
-    }
+     
+    return Promise.all([
+      this.toPromise(onTTFB),
+      this.toPromise(onFCP),
+      this.toPromise(onLCP, { reportAllChanges: true }), // setting true here ensures we get LCP immediately
+      this.toPromise(onFID),
+      this.toPromise(onCLS, { reportAllChanges: true }), // send all CLS measurements so we can track it over time and catch CLS during client-side navigation
+    ]).then(() => {})
   }
 
   /**
@@ -209,14 +338,13 @@ class BrowserMetrics implements Metrics {
         }
 
         /*
-                  Note: we can get the elements that shifted from CLS events by:
+          Note: we can get the elements that shifted from CLS events by:
 
-                  metric.entries[metric.entries.length - 1].sources
-                    ?.filter((source: any) => source.node != null)
-                    .map((source: any) => source.node.outerHTML)
-                    .join(', ')
-                */
-
+          metric.entries[metric.entries.length - 1].sources
+            ?.filter((source: any) => source.node != null)
+            .map((source: any) => source.node.outerHTML)
+            .join(', ')
+        */
         this.send()
 
         resolve()
@@ -241,8 +369,8 @@ class BrowserMetrics implements Metrics {
       }
     }
 
-    if (!this.splitTestVariant) {
-      this.splitTestVariant = this.getSplitTestVariant()
+    if (!this.destination) {
+      this.destination = this.getDestination()
     }
 
     if (!this.connectionType) {
@@ -256,7 +384,7 @@ class BrowserMetrics implements Metrics {
       }
     }
 
-    const data = {
+    const data: MetricsPayload = {
       ...this.metrics,
       i: this.index,
       u0: this.originalURL,
@@ -265,7 +393,7 @@ class BrowserMetrics implements Metrics {
       pid: this.pageID,
       t: this.token,
       ti: document.title,
-      d: this.splitTestVariant,
+      d: this.destination,
       ua: navigator.userAgent,
       w: window.screen.width,
       h: window.screen.height,
@@ -282,11 +410,21 @@ class BrowserMetrics implements Metrics {
       ct: this.connectionType,
       epop: timing.edgio_pop /* current convention */ || timing.edge_pop /* Layer0's convention */,
       asn: timing.edgio_asn /* current convention */ || timing.asn /* Layer0's convention */,
+      x: this.getSplitTesting(),
     }
 
     this.metrics = this.flushMetrics()
 
     return JSON.stringify(data)
+  }
+
+  getSplitTesting() {
+    if (this.cookiesInfo.splitTestingCookies.length === 0) {
+      return undefined
+    }
+
+    return this.cookiesInfo.splitTestingCookies
+      .map(cookie => ({ e: cookie.experimentId, v: cookie.variantId }))
   }
 
   getAppVersion(timing: ServerTiming) {
@@ -298,7 +436,7 @@ class BrowserMetrics implements Metrics {
     )
   }
 
-  getSplitTestVariant() {
+  getDestination() {
     return (
       this.options.splitTestVariant ||
       getCookieValue('edgio_destination') ||

@@ -5,6 +5,11 @@ import { clear, mockUserAgent } from 'jest-useragent-mock'
 import sleep from './utils/sleep'
 import mockPerformanceNavigation from './utils/mockServerTimings'
 
+// we mock the cookie function in order to be able to set the cookie value
+// between tests, as the native document.cookie is "read-only", we can only
+// append to it, but not change (clear) it 
+const mockCookieFunction = jest.fn();
+
 const validToken = '12345678-1234-abcd-ef00-1234567890ab'
 
 const commonParams = {
@@ -27,7 +32,15 @@ describe('Metrics', () => {
   describe('in the browser', () => {
     let Metrics, timing, webVitalsMock, log, warn, cookies
 
+    beforeAll(() => {
+      Object.defineProperty(document, 'cookie', {
+        get: mockCookieFunction
+      });
+    });
+
     beforeEach(() => {
+      mockCookieFunction.mockReturnValue('');
+
       jest.isolateModules(() => {
         cookies = { edgio_destination: 'A' }
         log = jest.spyOn(console, 'log').mockImplementation()
@@ -185,7 +198,7 @@ describe('Metrics', () => {
       })
 
       it('should use server-timing headers EC edge', () => {
-        document.cookie = 'edgio_destination=A'
+        mockCookieFunction.mockReturnValue('edgio_destination=A')
 
         const metrics = new Metrics({
           token: validToken,
@@ -212,7 +225,7 @@ describe('Metrics', () => {
       })
 
       it('should use server-timing headers Edgio edge', () => {
-        document.cookie = 'edgio_destination=A'
+        mockCookieFunction.mockReturnValue('edgio_destination=A')
 
         const metrics = new Metrics({
           token: validToken,
@@ -243,7 +256,7 @@ describe('Metrics', () => {
       })
 
       it('should use server-timing headers XDN edge', () => {
-        document.cookie = 'xdn_destination=A'
+        mockCookieFunction.mockReturnValue('edgio_destination=A')
 
         // Try adding connection before the constructor for full code coverage
         window.navigator.connection = { effectiveType: '4g' }
@@ -273,7 +286,7 @@ describe('Metrics', () => {
       })
 
       it('should use layer0 mappings on server-timing headers (backward compatibility test)', () => {
-        document.cookie = 'xdn_destination=A'
+        mockCookieFunction.mockReturnValue('edgio_destination=A')
 
         // Try adding connection before the constructor for full code coverage
         window.navigator.connection = { effectiveType: '4g' }
@@ -302,7 +315,44 @@ describe('Metrics', () => {
         })
       })
 
+      it('should parse information about split testing from the predefined cookie format', () => {
+        mockCookieFunction.mockReturnValue('x-edg-experiment-super_exp123=red_var123; x-edg-experiment-test_test123=blue_var789;  edgio_destination=A')
+
+        const metrics = new Metrics({
+          token: validToken,
+          cacheManifestTTL: 0,
+        })
+
+        timing = {
+          'xdn-cache': 'L1-HIT',
+          'xdn-deployment-id': 'deployment-2',
+          xrj: '{ "path": "/p/:id" }',
+          country: 'USA',
+        }
+
+        expect(JSON.parse(metrics.createPayload())).toEqual({
+          ...commonParams,
+          t: validToken,
+          v: 'deployment-2',
+          ht: 1,
+          c: 'USA',
+          l: '/p/:id',
+          l0: '/p/:id',
+          x: [
+          {
+            e: 'exp123',
+            v: 'var123',
+          },
+          {
+            e: 'test123',
+            v: 'var789',
+          }],
+        })
+      })
+
       it('should handle non-json xrj', () => {
+        mockCookieFunction.mockReturnValue('edgio_destination=A')
+
         timing = {
           xrj: '/p/:id',
         }

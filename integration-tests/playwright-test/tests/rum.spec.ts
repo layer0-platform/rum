@@ -27,7 +27,7 @@ test.describe("RUM - Request data", () => {
     const promiseRumRequest = new Promise((resolve, reject) => {
       page.goto(baseURL || "");
 
-      //check if RUM request was sended
+      //check if RUM request was sent
       page.on('request', request => {
         if (request.url().startsWith("https://rum.ingress.edgio.net/v1/")) {
           resolve(request);
@@ -117,9 +117,3 @@ test.describe("RUM - Request data", () => {
   });
 
 });
-
-
-
-
-
-
