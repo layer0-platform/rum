@@ -1,6 +1,6 @@
 import { Cookie } from './Cookie';
 import { Lazy } from './Lazy';
-import { SpliTestingCookie } from './SpliTestingCookie';
+import { SplitTestingCookie } from './SplitTestingCookie';
 
 const getAllCookies= (): Cookie[]  => {
     const allCokies = document.cookie
@@ -11,15 +11,15 @@ const getAllCookies= (): Cookie[]  => {
     return allCokies;
 }
 
-const getSplitTestingCookies = (cookies: Cookie[]): SpliTestingCookie[] => {
+const getSplitTestingCookies = (cookies: Cookie[]): SplitTestingCookie[] => {
     const splitTestingCookies = cookies
         .map(c => extractSplitTestingCookie(c))
-        .filter(c => c !== undefined) as SpliTestingCookie[];
+        .filter(c => c !== undefined) as SplitTestingCookie[];
 
     return splitTestingCookies;
 }
 
-const extractSplitTestingCookie = (cookie: Cookie): SpliTestingCookie | undefined => {
+const extractSplitTestingCookie = (cookie: Cookie): SplitTestingCookie | undefined => {
     if (!cookie.key.startsWith('x-edg-experiment'))
         return undefined;
 
@@ -58,7 +58,7 @@ export class CookiesInfo {
         return this.cookiesLazy.value;
     }
 
-    private splitTestingCookiesLazy: Lazy<SpliTestingCookie[]>;
+    private splitTestingCookiesLazy: Lazy<SplitTestingCookie[]>;
 
     get splitTestingCookies() {
         return this.splitTestingCookiesLazy.value;

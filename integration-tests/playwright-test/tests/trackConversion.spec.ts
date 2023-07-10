@@ -15,7 +15,7 @@ test.describe("RUM - trackConversion function test", () => {
     listenerPromise = new Promise((resolve, reject) => {
       page.on('request', request => {
         const u = request.url();
-        if (u.startsWith("https://rum.ingress.layer0.co/ingress/rum/v1/") && u.endsWith("conversion")) {
+        if (u.startsWith("https://rum.ingress.edgio.net/v1/") && u.endsWith("conversion")) {
           resolve(request);
         }
       });
