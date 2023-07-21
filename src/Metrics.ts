@@ -410,7 +410,8 @@ class BrowserMetrics implements Metrics {
       ct: this.connectionType,
       epop: timing.edgio_pop /* current convention */ || timing.edge_pop /* Layer0's convention */,
       asn: timing.edgio_asn /* current convention */ || timing.asn /* Layer0's convention */,
-      x: this.getSplitTesting(),
+      // uncomment once split testing is supported on Edgio
+      // x: this.getSplitTesting(),
     }
 
     this.metrics = this.flushMetrics()
