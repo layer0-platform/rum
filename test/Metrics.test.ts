@@ -7,8 +7,8 @@ import mockPerformanceNavigation from './utils/mockServerTimings'
 
 // we mock the cookie function in order to be able to set the cookie value
 // between tests, as the native document.cookie is "read-only", we can only
-// append to it, but not change (clear) it 
-const mockCookieFunction = jest.fn();
+// append to it, but not change (clear) it
+const mockCookieFunction = jest.fn()
 
 const validToken = '12345678-1234-abcd-ef00-1234567890ab'
 
@@ -34,12 +34,12 @@ describe('Metrics', () => {
 
     beforeAll(() => {
       Object.defineProperty(document, 'cookie', {
-        get: mockCookieFunction
-      });
-    });
+        get: mockCookieFunction,
+      })
+    })
 
     beforeEach(() => {
-      mockCookieFunction.mockReturnValue('');
+      mockCookieFunction.mockReturnValue('')
 
       jest.isolateModules(() => {
         cookies = { edgio_destination: 'A' }
@@ -52,6 +52,7 @@ describe('Metrics', () => {
         jest.doMock('../src/getCookieValue', () => name => cookies[name])
         jest.doMock('../src/getServerTiming', () => () => timing)
         webVitalsMock = require('./utils/mockWebVitals')()
+        webVitalsMock.reset()
         Metrics = require('../src/Metrics').default
         delete window.navigator.connection
         mockPerformanceNavigation()
@@ -113,7 +114,7 @@ describe('Metrics', () => {
         ]
 
         webVitalsMock.setClsDelta(0.1)
-
+        webVitalsMock.setLargetShiftTarget('body')
         webVitalsMock.setClsEntries([
           {
             sources: [
@@ -139,13 +140,11 @@ describe('Metrics', () => {
             lx: '/',
             ttfb: 4,
             clsel: ['body'],
+            inp: 6,
             t: validToken,
           })
         } finally {
           delete window.__XDN_CACHE_MANIFEST__
-          webVitalsMock.setClsEntries([])
-          webVitalsMock.setClsDelta(0)
-
           delete cookies['layer0_environment_id_info']
         }
       })
@@ -157,6 +156,7 @@ describe('Metrics', () => {
         ]
 
         webVitalsMock.setClsDelta(0.1)
+        webVitalsMock.setLargetShiftTarget('#some-element-1')
 
         document.body.innerHTML =
           '<div id="some-element-1">Test</div><div id="some-element-2">Test</div>'
@@ -188,12 +188,11 @@ describe('Metrics', () => {
             lcp: 3,
             ttfb: 4,
             clsel: ['#some-element-1'],
+            inp: 6,
             t: validToken,
           })
         } finally {
           delete window.__XDN_CACHE_MANIFEST__
-          webVitalsMock.setClsEntries([])
-          webVitalsMock.setClsDelta(0)
         }
       })
 
@@ -316,7 +315,9 @@ describe('Metrics', () => {
       })
 
       xit('should parse information about split testing from the predefined cookie format', () => {
-        mockCookieFunction.mockReturnValue('x-edg-experiment-super_exp123=red_var123; x-edg-experiment-test_test123=blue_var789;  edgio_destination=A')
+        mockCookieFunction.mockReturnValue(
+          'x-edg-experiment-super_exp123=red_var123; x-edg-experiment-test_test123=blue_var789;  edgio_destination=A'
+        )
 
         const metrics = new Metrics({
           token: validToken,
@@ -339,14 +340,15 @@ describe('Metrics', () => {
           l: '/p/:id',
           l0: '/p/:id',
           x: [
-          {
-            e: 'exp123',
-            v: 'var123',
-          },
-          {
-            e: 'test123',
-            v: 'var789',
-          }],
+            {
+              e: 'exp123',
+              v: 'var123',
+            },
+            {
+              e: 'test123',
+              v: 'var789',
+            },
+          ],
         })
       })
 
@@ -554,6 +556,8 @@ describe('Metrics', () => {
           cls: 2,
           fcp: 5,
           fid: 1,
+          clsel: ['#home'],
+          inp: 6,
           t: validToken,
         })
       })
@@ -572,6 +576,7 @@ describe('Metrics', () => {
           ttfb: 4,
           fcp: 5,
           fid: 1,
+          inp: 6,
           t: validToken,
         })
       })
@@ -595,6 +600,8 @@ describe('Metrics', () => {
           cn: 1,
           cls: 2,
           ils: 2,
+          inp: 6,
+          clsel: ['#home', '#home'],
           ux: 'http://localhost/p/red-shoe',
         })
       })
