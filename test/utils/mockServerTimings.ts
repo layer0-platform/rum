@@ -1,10 +1,6 @@
 const internalMockPerformance = jest.fn()
 
-Object.defineProperty(window, 'performance', {
-  value: {
-    getEntriesByType: internalMockPerformance,
-  },
-})
+window.performance.getEntriesByType = internalMockPerformance
 
 const mockPerformanceNavigation = (
   expectedReturnValue: Array<{ serverTiming: any }> = [{ serverTiming: [] }]

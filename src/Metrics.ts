@@ -1,4 +1,13 @@
-import { Metric, onTTFB, onFCP, onLCP, onFID, onCLS } from 'web-vitals'
+import {
+  onLCP,
+  onFID,
+  onCLS,
+  onINP,
+  onFCP,
+  onTTFB,
+  MetricWithAttribution,
+  CLSAttribution,
+} from 'web-vitals/attribution'
 import { ReportOpts } from 'web-vitals/src/types'
 import { CACHE_MANIFEST_TTL, DEST_URL, SEND_DELAY } from './constants'
 import getCookieValue from './getCookieValue'
@@ -6,7 +15,6 @@ import getServerTiming, { ServerTiming } from './getServerTiming'
 import Router from './Router'
 import uuid from './uuid'
 import debounce from 'lodash.debounce'
-import getSelectorForElement from './getSelectorForElement'
 import CacheManifest from './CacheManifest'
 import { isV7orGreater, isServerTimingSupported } from './utils'
 import { CookiesInfo } from './CookiesInfo'
@@ -23,127 +31,127 @@ export interface MetricsPayload {
   /**
    * All unknown properties that are sent as metrics
    */
-  [name: string]: number | string | string[] | undefined | null | {};
+  [name: string]: number | string | string[] | undefined | null | {}
 
-  /**  
+  /**
    * Index of the metric in the current page that is sent
    * */
-  i: number;
-  
-  /**
-   *  Original Url 
-   * */
-  u0: string;
+  i: number
 
-  /**  
+  /**
+   *  Original Url
+   * */
+  u0: string
+
+  /**
    * Client navigation has occurred
    * */
-  cn: number;
+  cn: number
 
   /**
    * Current page location (href)
    */
-  ux: string;
+  ux: string
 
   /**
    * Page Id
    */
-  pid: string;
-  
+  pid: string
+
   /**
    * Token value
    */
-  t?: string;
+  t?: string
 
   /**
    * Document title
    * */
-  ti: string;
+  ti: string
 
   /**
    * Edgio destination, used in Layer0 for split testing
    */
-  d?: string;
+  d?: string
 
   /**
    * User agent
    */
-  ua: string;
+  ua: string
 
   /**
    * Window screen width
    */
-  w: number;
+  w: number
 
   /**
    * Window screen height
    */
-  h?: number;
+  h?: number
 
   /**
    * Application version, derived from deployment (Layer0/Edgio) ID
    **/
-  v?: string;
-
-  /** 
-   * Rum client version
-   * */
-  cv: string;
+  v?: string
 
   /**
-   * Indicates whether it is a cache hit or miss, 1 is for hit, 0 is for miss, null is for not applicable 
+   * Rum client version
+   * */
+  cv: string
+
+  /**
+   * Indicates whether it is a cache hit or miss, 1 is for hit, 0 is for miss, null is for not applicable
    */
-  ht: number | null;
+  ht: number | null
 
   /**
    * Page label. for backward compatibility
    */
-  l?: string;
+  l?: string
 
   /**
    * Page label, either from passed from options, or from routes
    * */
-  l0?: string;
+  l0?: string
 
   /**
    * Page label, either from passed router in options, or from cache manifest (which is depricated on Edgio)
    **/
-  lx?: string;
-  
+  lx?: string
+
   /**
    * Country
    */
-  c?: string;
+  c?: string
 
   /**
    * Connection type
    */
-  ct?: string;
+  ct?: string
 
   /**
    * Edgio pop from timing header
    * */
-  epop?: string;
-  
+  epop?: string
+
   /**
    * Asn from timing header
-    **/
-  asn?: string;
-  
+   **/
+  asn?: string
+
   /**
    * Edgio experiment from traffic split
    * */
-  x?: ({
+  x?: {
     /**
      * Experiment ID
      */
-    e: string;
+    e: string
 
     /**
      * Variant ID
      */
-    v: string;
-  })[];
+    v: string
+  }[]
 }
 
 export interface MetricsOptions {
@@ -228,8 +236,8 @@ class BrowserMetrics implements Metrics {
   private destination?: string
   private connectionType?: string
   private manifest?: CacheManifest
-  private cookiesInfo: CookiesInfo;
-  
+  private cookiesInfo: CookiesInfo
+
   constructor(options: MetricsOptions = {}) {
     this.originalURL = location.href
     this.options = options
@@ -239,7 +247,7 @@ class BrowserMetrics implements Metrics {
     this.pageID = uuid()
     this.metrics = this.flushMetrics()
     this.cookiesInfo = new CookiesInfo()
-    
+
     try {
       // @ts-ignore
       this.connectionType = navigator.connection.effectiveType
@@ -262,13 +270,13 @@ class BrowserMetrics implements Metrics {
     // Server timing is not supported on browsers like Safari, this causes
     // our library report all Safari requests as Cache MISS, we need to change
     // how we handle MISS/HIT ration in the RUM Edgio BE
-    if (!isServerTimingSupported())
-      return Promise.resolve()
-     
+    if (!isServerTimingSupported()) return Promise.resolve()
+
     return Promise.all([
       this.toPromise(onTTFB),
       this.toPromise(onFCP),
       this.toPromise(onLCP, { reportAllChanges: true }), // setting true here ensures we get LCP immediately
+      this.toPromise(onINP, { reportAllChanges: true }), // setting true here ensures we get LCP immediately
       this.toPromise(onFID),
       this.toPromise(onCLS, { reportAllChanges: true }), // send all CLS measurements so we can track it over time and catch CLS during client-side navigation
     ]).then(() => {})
@@ -297,7 +305,7 @@ class BrowserMetrics implements Metrics {
    */
   private toPromise(getMetric: Function, params?: ReportOpts) {
     return new Promise<void>(resolve => {
-      getMetric((metric: Metric) => {
+      getMetric((metric: MetricWithAttribution) => {
         if (metric.delta === 0) {
           // metrics like LCP will get reported as a final value on first input. If there is no change from the previous measurement, don't bother reporting
           return resolve()
@@ -310,26 +318,22 @@ class BrowserMetrics implements Metrics {
         }
 
         if (metric.name === 'CLS') {
+          const attribution = metric.attribution as CLSAttribution
+
           // record the CLS delta as incremental layout shift if a client side navigation has occurred
           if (this.clientNavigationHasOccurred) {
             this.metrics.ils = metric.delta
           }
 
           // record the element that shifted
-          if (metric.entries?.length) {
-            try {
-              // Depending on the DOM layout, there can be MANY elements that shift during each CLS event.
-              // To save on logging costs we only send the first.
-              // @ts-ignore The typings appear to be wrong here - sources contains the elements causing the CLS
-              const source: any = metric.entries[metric.entries.length - 1].sources[0]
+          // @ts-ignore this.metrics.clsel is always initialized to an empty array
+          this.metrics.clsel.push(attribution.largestShiftTarget)
 
-              // @ts-ignore this.metrics.clsel is always initialized to an empty array
-              this.metrics.clsel.push(getSelectorForElement(source.node).join(' > '))
-            } catch (e) {
-              // don't fail to report if generating a descriptor fails for some reason
-              /* istanbul ignore next */
-              console.error(e)
-            }
+          if (this.options.debug) {
+            console.log(
+              `[RUM] largest layout shift target: ${attribution.largestShiftTarget}`,
+              `(pageID: ${this.pageID})`
+            )
           }
         }
 
@@ -337,14 +341,6 @@ class BrowserMetrics implements Metrics {
           console.log('[RUM]', metric.name, metric.value, `(pageID: ${this.pageID})`)
         }
 
-        /*
-          Note: we can get the elements that shifted from CLS events by:
-
-          metric.entries[metric.entries.length - 1].sources
-            ?.filter((source: any) => source.node != null)
-            .map((source: any) => source.node.outerHTML)
-            .join(', ')
-        */
         this.send()
 
         resolve()
@@ -424,8 +420,10 @@ class BrowserMetrics implements Metrics {
       return undefined
     }
 
-    return this.cookiesInfo.splitTestingCookies
-      .map(cookie => ({ e: cookie.experimentId, v: cookie.variantId }))
+    return this.cookiesInfo.splitTestingCookies.map(cookie => ({
+      e: cookie.experimentId,
+      v: cookie.variantId,
+    }))
   }
 
   getAppVersion(timing: ServerTiming) {

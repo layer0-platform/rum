@@ -8,16 +8,18 @@ import mockPerformanceNavigation from './utils/mockServerTimings'
 const validToken = '12345678-1234-abcd-ef00-1234567890ab'
 
 describe('cdn', () => {
-  let timing
+  let timing, webVitalsMock
 
   beforeEach(() => {
     jest.isolateModules(() => {
       mockUserAgent('chrome')
       document.title = 'Home'
       jest.spyOn(console, 'debug').mockImplementation()
+      jest.spyOn(console, 'warn').mockImplementation()
       timing = {}
       jest.doMock('../src/getServerTiming', () => () => timing)
-      require('./utils/mockWebVitals')()
+      webVitalsMock = require('./utils/mockWebVitals')()
+      webVitalsMock.reset()
       mockPerformanceNavigation()
     })
   })
@@ -44,6 +46,7 @@ describe('cdn', () => {
       lcp: 3,
       fid: 1,
       cls: 2,
+      inp: 6,
       ttfb: 4,
       fcp: 5,
       i: 0,
@@ -61,7 +64,7 @@ describe('cdn', () => {
       l: 'home',
       l0: 'home',
       lx: 'home',
-      clsel: [],
+      clsel: ['#home'],
     })
 
     expect(fetch.mock.calls.length).toBe(1)
