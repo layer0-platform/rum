@@ -224,7 +224,7 @@ declare var Metrics: MetricsConstructor
  * ```
  */
 class BrowserMetrics implements Metrics {
-  private metrics: { [name: string]: number | string[] | undefined }
+  private metrics: { [name: string]: number | string[] | string | undefined }
   private token?: string
   private options: MetricsOptions
   private sendTo: string
@@ -295,7 +295,7 @@ class BrowserMetrics implements Metrics {
   }
 
   private flushMetrics() {
-    return { clsel: [] }
+    return { clsel: [], inpel: undefined }
   }
 
   /**
@@ -315,6 +315,10 @@ class BrowserMetrics implements Metrics {
 
         if (!this.clientNavigationHasOccurred) {
           this.clientNavigationHasOccurred = this.originalURL !== location.href
+        }
+
+        if (metric.name === 'INP') {
+          this.metrics.inpel = metric.attribution?.eventTarget as string
         }
 
         if (metric.name === 'CLS') {
