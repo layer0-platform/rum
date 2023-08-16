@@ -26,6 +26,7 @@ const commonParams = {
   pid: expect.any(String),
   ht: null,
   clsel: [],
+  inpel: undefined,
 }
 
 describe('Metrics', () => {
@@ -141,6 +142,7 @@ describe('Metrics', () => {
             ttfb: 4,
             clsel: ['body'],
             inp: 6,
+            inpel: '#casa',
             t: validToken,
           })
         } finally {
@@ -189,6 +191,7 @@ describe('Metrics', () => {
             ttfb: 4,
             clsel: ['#some-element-1'],
             inp: 6,
+            inpel: '#casa',
             t: validToken,
           })
         } finally {
@@ -557,6 +560,7 @@ describe('Metrics', () => {
           fcp: 5,
           fid: 1,
           clsel: ['#home'],
+          inpel: '#casa',
           inp: 6,
           t: validToken,
         })
@@ -577,6 +581,7 @@ describe('Metrics', () => {
           fcp: 5,
           fid: 1,
           inp: 6,
+          inpel: '#casa',
           t: validToken,
         })
       })
@@ -602,6 +607,7 @@ describe('Metrics', () => {
           ils: 2,
           inp: 6,
           clsel: ['#home', '#home'],
+          inpel: '#casa',
           ux: 'http://localhost/p/red-shoe',
         })
       })
