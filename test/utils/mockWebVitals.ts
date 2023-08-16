@@ -21,7 +21,7 @@ module.exports = () => {
         3
       ),
     onTTFB: cb => setTimeout(() => cb({ name: 'TTFB', value: 4 }), 4),
-    onINP: cb => setTimeout(() => cb({ name: 'INP', value: 6 }), 6),
+    onINP: cb => setTimeout(() => cb({ name: 'INP', value: 6, attribution: { eventTarget: '#casa' } }), 6),
   }))
 
   return {
