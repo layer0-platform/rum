@@ -295,7 +295,7 @@ class BrowserMetrics implements Metrics {
   }
 
   private flushMetrics() {
-    return { clsel: [], inpel: undefined }
+    return { clsel: [] }
   }
 
   /**
