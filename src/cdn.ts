@@ -23,15 +23,23 @@ import trackConversion from './trackConversion';
 
 /* istanbul ignore else */
 if (typeof window !== 'undefined') {
-  const Edgio = ((window as any).Edgio = {
+  const rumExports = {
     Metrics,
     Router,
     trackConversion,
-  })
+  }
+
+  // for Edgio
+  ;(window as any).Edgio = {
+    // Add existing properties from @edgio/prefetch for example.
+    // See xdn/packages/prefetch/src/cdn/install.ts
+    ...((window as any)?.Edgio ?? {}),
+    ...rumExports,
+  }
 
   // for XDN backwards compatibility
-  ;(window as any).XDN = Edgio
+  ;(window as any).XDN = rumExports
 
   // for Layer0 backwards compatibility
-  ;(window as any).Layer0 = Edgio
+  ;(window as any).Layer0 = rumExports
 }
