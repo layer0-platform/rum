@@ -72,10 +72,14 @@ describe('cdn', () => {
   })
 
   it('should export XDN.Metrics', () => {
-    expect(XDN).toBe(Edgio)
+    require('../src/cdn')
+    expect(XDN).toEqual(Edgio)
+    expect(XDN.Metrics).toBeDefined()
   })
 
   it('should export Layer0.Metrics', () => {
-    expect(Layer0).toBe(Edgio)
+    require('../src/cdn')
+    expect(Layer0).toEqual(Edgio)
+    expect(Layer0.Metrics).toBeDefined()
   })
 })
