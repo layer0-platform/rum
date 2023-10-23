@@ -12,12 +12,12 @@ import {
 import { ReportOpts } from 'web-vitals/src/types'
 import { CACHE_MANIFEST_TTL, DEST_URL, SEND_DELAY } from './constants'
 import getCookieValue from './getCookieValue'
-import getServerTiming, { ServerTiming } from './getServerTiming'
+import { ServerTiming } from './getServerTiming'
 import Router from './Router'
 import uuid from './uuid'
 import debounce from 'lodash.debounce'
 import CacheManifest from './CacheManifest'
-import { isV7orGreater, isServerTimingSupported } from './utils'
+import { isV7orGreater, getServerTiming, isServerTimingSupported } from './utils'
 import { CookiesInfo } from './CookiesInfo'
 
 let rumClientVersion: string
@@ -358,7 +358,7 @@ class BrowserMetrics implements Metrics {
    * Creates the data payload reported to Edgio RUM
    */
   private createPayload() {
-    const timing = getServerTiming()
+    const timing = getServerTiming()!
     const edgioRoutes = timing.xrj
     let pageLabel = this.options.pageLabel || this.options.router?.getPageLabel(this.originalURL)
 
