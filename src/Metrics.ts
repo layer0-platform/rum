@@ -358,7 +358,7 @@ class BrowserMetrics implements Metrics {
    * Creates the data payload reported to Edgio RUM
    */
   private createPayload() {
-    const timing = getServerTiming()!    
+    const timing = getServerTiming()!
     const edgioRoutes = timing.xrj
     let pageLabel = this.options.pageLabel || this.options.router?.getPageLabel(this.originalURL)
 

@@ -35,7 +35,7 @@ export default function getServerTiming() {
       timing[name] = decodeURIComponent(description)
     }
   } catch (e) {
-    console.debug('[RUM] could not obtain serverTiming metrics', e)      
+    console.debug('[RUM] could not obtain serverTiming metrics', e)
   }
 
   return timing
