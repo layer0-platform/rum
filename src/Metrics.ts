@@ -7,7 +7,7 @@ import {
   onTTFB,
   MetricWithAttribution,
   CLSAttribution,
-  INPAttribution
+  INPAttribution,
 } from 'web-vitals/attribution'
 import { ReportOpts } from 'web-vitals/src/types'
 import { CACHE_MANIFEST_TTL, DEST_URL, SEND_DELAY } from './constants'
@@ -276,10 +276,10 @@ class BrowserMetrics implements Metrics {
     return Promise.all([
       this.toPromise(onTTFB),
       this.toPromise(onFCP),
-      this.toPromise(onLCP, { reportAllChanges: true }), // setting true here ensures we get LCP immediately
-      this.toPromise(onINP, { reportAllChanges: true }), // setting true here ensures we get INP immediately
+      this.toPromise(onLCP),
+      this.toPromise(onINP),
       this.toPromise(onFID),
-      this.toPromise(onCLS, { reportAllChanges: true }), // send all CLS measurements so we can track it over time and catch CLS during client-side navigation
+      this.toPromise(onCLS),
     ]).then(() => {})
   }
 
