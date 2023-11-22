@@ -12,28 +12,39 @@ const COUNTRY = "US";               //country (c)
 const APP_VERSION = "v1.0.0";       //app version(v)
 const HT = true;                    //CacheHit (ht)
 
+
+
 test.describe("RUM - Request data", () => {
   let page: Page;
   let RumRequest: any;
   let RumRequestBody: any;
+  
 
   //catch Rum request and save it
   test.beforeAll(async ({ baseURL }) => {
     const browser = await chromium.launch();
     page = await browser.newPage();
-
-    await page.setViewportSize({width: WIDTH, height: HEIGHT});
-
-    const promiseRumRequest = new Promise((resolve, reject) => {
-      page.goto(baseURL || "");
-
+    
+    const promiseRumRequest =  new Promise((resolve, reject) => {
       //check if RUM request was sent
       page.on('request', request => {
         if (request.url().startsWith("https://rum.ingress.edgio.net/v1/")) {
           resolve(request);
         }
       });
+
+      // when page is loaded, set visibilityState to hidden, so we can trigger
+      // RUM to send request
+      page.goto(baseURL || "").then(() => {
+        page.evaluate(() => {
+          Object.defineProperty(document, 'visibilityState', { value: 'hidden', writable: true })
+          Object.defineProperty(document, 'hidden', { value: true, writable: true })
+          window.dispatchEvent(new Event('visibilitychange'))
+        })
+      })    
     });
+    
+    await page.setViewportSize({width: WIDTH, height: HEIGHT});    
 
     // console.debug("Waiting for Rum request")
     RumRequest = await promiseRumRequest
