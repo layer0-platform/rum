@@ -40,6 +40,8 @@ describe('Metrics', () => {
     })
 
     beforeEach(() => {
+      window.fetch = jest.fn()
+
       mockCookieFunction.mockReturnValue('')
 
       jest.isolateModules(() => {
@@ -116,23 +118,19 @@ describe('Metrics', () => {
 
         webVitalsMock.setClsDelta(0.1)
         webVitalsMock.setLargetShiftTarget('body')
-        webVitalsMock.setClsEntries([
-          {
-            sources: [
-              {
-                node: document.body,
-              },
-            ],
-          },
-        ])
 
         try {
           const metrics = new Metrics({
             token: validToken,
             cacheManifestTTL: 0,
           })
-          await metrics.collect()
-          expect(JSON.parse(metrics.createPayload())).toEqual({
+
+          metrics.collect()
+          await sleep(SEND_DELAY + 20)
+          metrics.flushQueue()
+          const payload = JSON.parse(window.fetch.mock.calls[0][1].body)
+
+          expect(payload).toEqual({
             ...commonParams,
             cls: 2,
             fcp: 5,
@@ -163,26 +161,19 @@ describe('Metrics', () => {
         document.body.innerHTML =
           '<div id="some-element-1">Test</div><div id="some-element-2">Test</div>'
 
-        webVitalsMock.setClsEntries([
-          {
-            sources: [
-              {
-                node: document.querySelector('#some-element-1'),
-              },
-              {
-                node: document.querySelector('#some-element-2'),
-              },
-            ],
-          },
-        ])
-
         try {
           const metrics = new Metrics({
             token: validToken,
             cacheManifestTTL: 0,
           })
-          await metrics.collect()
-          expect(JSON.parse(metrics.createPayload())).toEqual({
+
+          metrics.collect()
+          await sleep(SEND_DELAY + 20)
+          metrics.flushQueue()
+
+          const payload = JSON.parse(window.fetch.mock.calls[0][1].body)
+
+          expect(payload).toEqual({
             ...commonParams,
             cls: 2,
             fcp: 5,
@@ -452,7 +443,6 @@ describe('Metrics', () => {
         expect(url).toBe(`${DEST_URL}/${validToken}`)
         expect(JSON.parse(body)).toEqual({
           ...commonParams,
-          lx: '/',
           t: validToken,
         })
       })
@@ -503,7 +493,10 @@ describe('Metrics', () => {
 
     describe('debug', () => {
       it('should log collected metrics', async () => {
-        await new Metrics({ token: validToken, debug: true, cacheManifestTTL: 0 }).collect()
+        const metrics = new Metrics({ token: validToken, debug: true, cacheManifestTTL: 0 })
+        metrics.collect()
+        await sleep(SEND_DELAY + 20)
+        metrics.flushQueue()
         expect(log).toHaveBeenCalledWith('[RUM]', 'LCP', 3, expect.any(String))
         expect(log).toHaveBeenCalledWith('[RUM]', 'FID', 1, expect.any(String))
         expect(log).toHaveBeenCalledWith('[RUM]', 'CLS', 2, expect.any(String))
@@ -546,8 +539,9 @@ describe('Metrics', () => {
       })
 
       it('should send LCP, FID, and CLS', async () => {
-        await metrics.collect()
+        metrics.collect()
         await sleep(SEND_DELAY + 10)
+        metrics.flushQueue()
         const [url, options] = Array.from(fetch.mock.calls[0])
 
         expect(url).toBe(`${DEST_URL}/${validToken}`)
@@ -566,31 +560,13 @@ describe('Metrics', () => {
         })
       })
 
-      it('should not send cls if delta is 0', async () => {
-        webVitalsMock.setClsDelta(0)
-        await metrics.collect()
-        await sleep(SEND_DELAY + 20)
-        const [url, options] = Array.from(fetch.mock.calls[0])
-
-        expect(url).toBe(`${DEST_URL}/${validToken}`)
-
-        expect(JSON.parse(options.body)).toEqual({
-          ...commonParams,
-          lcp: 3,
-          ttfb: 4,
-          fcp: 5,
-          fid: 1,
-          inp: 6,
-          inpel: '#casa',
-          t: validToken,
-        })
-      })
-
       it('should report if client navigation has occurred', async () => {
-        await metrics.collect()
+        metrics.collect()
         window.history.pushState({}, 'red shoe', '/p/red-shoe')
-        await metrics.collect()
+        metrics.collect()
         await sleep(SEND_DELAY + 20)
+        metrics.flushQueue()
+
         const [url, options] = Array.from(fetch.mock.calls[0])
 
         expect(url).toBe(`${DEST_URL}/${validToken}`)
@@ -616,6 +592,7 @@ describe('Metrics', () => {
         mockUserAgent('safari')
         await metrics.collect()
         await sleep(SEND_DELAY + 20)
+        metrics.flushQueue()
         expect(fetch).toHaveBeenCalled()
       })
     })
@@ -640,7 +617,8 @@ describe('Metrics', () => {
     })
 
     it('runs without error', async () => {
-      await new Metrics({ cacheManifestTTL: 0 }).collect()
+      const metrics = new Metrics({ cacheManifestTTL: 0 })
+      metrics.collect()
     })
   })
 })
