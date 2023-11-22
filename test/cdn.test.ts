@@ -32,12 +32,14 @@ describe('cdn', () => {
     const fetch = (window.fetch = jest.fn())
     require('../src/cdn')
 
-    await new Edgio.Metrics({
+    const metrics = new Edgio.Metrics({
       token: validToken,
       router: new Edgio.Router().match('/', ({ setPageLabel }) => setPageLabel('home')),
-    }).collect()
+    })
 
+    metrics.collect()
     await sleep(SEND_DELAY + 20)
+    metrics.flushQueue()
 
     const [url, options] = Array.from(fetch.mock.calls[0])
     expect(url).toBe(`${DEST_URL}/${validToken}`)

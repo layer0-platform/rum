@@ -9,13 +9,11 @@ import {
   CLSAttribution,
   INPAttribution,
 } from 'web-vitals/attribution'
-import { ReportOpts } from 'web-vitals/src/types'
-import { CACHE_MANIFEST_TTL, DEST_URL, SEND_DELAY } from './constants'
+import { CACHE_MANIFEST_TTL, DEST_URL } from './constants'
 import getCookieValue from './getCookieValue'
 import { ServerTiming } from './getServerTiming'
 import Router from './Router'
 import uuid from './uuid'
-import debounce from 'lodash.debounce'
 import CacheManifest from './CacheManifest'
 import { isV7orGreater, getServerTiming, isServerTimingSupported } from './utils'
 import { CookiesInfo } from './CookiesInfo'
@@ -190,7 +188,8 @@ export interface MetricsOptions {
    */
   sendTo?: string
   /**
-   * Set to true to output all measurements to the console
+   * Set to true to output all measurements to the console. You can also enable debug output
+   * by setting the `edgio_rum_debug` cookie to `true` in your browser.
    */
   debug?: boolean
   /**
@@ -207,7 +206,7 @@ interface Metrics {
   /**
    * Collects all metrics and reports them to Edgio RUM.
    */
-  collect(): Promise<void>
+  collect(): void
 }
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
@@ -238,6 +237,8 @@ class BrowserMetrics implements Metrics {
   private connectionType?: string
   private manifest?: CacheManifest
   private cookiesInfo: CookiesInfo
+  private queue: Set<MetricWithAttribution>
+  private debug: boolean = false
 
   constructor(options: MetricsOptions = {}) {
     this.originalURL = location.href
@@ -248,12 +249,17 @@ class BrowserMetrics implements Metrics {
     this.pageID = uuid()
     this.metrics = this.flushMetrics()
     this.cookiesInfo = new CookiesInfo()
+    this.queue = new Set()
+
+    this.debug =
+      this.options.debug ??
+      this.cookiesInfo.cookies.find(c => c.key === 'edgio_rum_debug')?.value === 'true'
 
     try {
       // @ts-ignore
       this.connectionType = navigator.connection.effectiveType
     } catch (e) {
-      if (this.options.debug) {
+      if (this.debug) {
         console.debug('[RUM] could not obtain navigator.connection metrics')
       }
     }
@@ -273,45 +279,40 @@ class BrowserMetrics implements Metrics {
     // how we handle MISS/HIT ration in the RUM Edgio BE
     if (!isServerTimingSupported()) return Promise.resolve()
 
-    return Promise.all([
-      this.toPromise(onTTFB),
-      this.toPromise(onFCP),
-      this.toPromise(onLCP),
-      this.toPromise(onINP),
-      this.toPromise(onFID),
-      this.toPromise(onCLS),
-    ]).then(() => {})
+    // See https://github.com/GoogleChrome/web-vitals#batch-multiple-reports-together
+    // Report all available metrics whenever the page is backgrounded or unloaded.
+    addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') {
+        this.flushQueue('visibilitychange')
+      }
+    })
+
+    // NOTE: Safari does not reliably fire the `visibilitychange` event when the
+    // page is being unloaded. If Safari support is needed, you should also flush
+    // the queue in the `pagehide` event.
+    addEventListener('pagehide', () => this.flushQueue('pagehide'))
+
+    onFCP(this.addToQueue)
+    onTTFB(this.addToQueue)
+    onLCP(this.addToQueue)
+    onINP(this.addToQueue)
+    onFID(this.addToQueue)
+    onCLS(this.addToQueue)
   }
 
-  /**
-   * Sends a beacon to Edgio Porkfish, which helps us improve anycast routing performance.
-   */
-  private sendPorkfishBeacon() {
-    try {
-      const uuid = crypto.randomUUID()
-      navigator.sendBeacon(`https://${uuid}.ac.bcon.ecdns.net/udp/${this.token}`)
-    } catch (e) {
-      console.warn('could not send beacon', e)
+  addToQueue = (metric: any) => {
+    this.queue.add(metric)
+
+    if (this.debug) {
+      console.log('[RUM]', metric.name, metric.value, `(pageID: ${this.pageID})`)
     }
   }
 
-  private flushMetrics() {
-    return { clsel: [] }
-  }
+  flushQueue = (event: string) => {
+    const { queue } = this
 
-  /**
-   * Returns a promise that resolves once the specified metric has been collected.
-   * @param getMetric
-   * @param params
-   */
-  private toPromise(getMetric: Function, params?: ReportOpts) {
-    return new Promise<void>(resolve => {
-      getMetric((metric: MetricWithAttribution) => {
-        if (metric.delta === 0) {
-          // metrics like LCP will get reported as a final value on first input. If there is no change from the previous measurement, don't bother reporting
-          return resolve()
-        }
-
+    if (queue.size > 0) {
+      Array.from(this.queue).forEach(metric => {
         this.metrics[metric.name.toLowerCase()] = metric.value
 
         if (!this.clientNavigationHasOccurred) {
@@ -332,26 +333,32 @@ class BrowserMetrics implements Metrics {
           }
 
           // record the element that shifted
-          // @ts-ignore this.metrics.clsel is always initialized to an empty array
-          this.metrics.clsel.push(attribution.largestShiftTarget)
-
-          if (this.options.debug) {
-            console.log(
-              `[RUM] largest layout shift target: ${attribution.largestShiftTarget}`,
-              `(pageID: ${this.pageID})`
-            )
+          if (attribution.largestShiftTarget) {
+            // @ts-ignore this.metrics.clsel is always initialized to an empty array
+            this.metrics.clsel.push(attribution.largestShiftTarget)
           }
         }
+      })
 
-        if (this.options.debug) {
-          console.log('[RUM]', metric.name, metric.value, `(pageID: ${this.pageID})`)
-        }
+      queue.clear()
+      this.send()
+    }
+  }
 
-        this.send()
+  /**
+   * Sends a beacon to Edgio Porkfish, which helps us improve anycast routing performance.
+   */
+  private sendPorkfishBeacon() {
+    try {
+      const uuid = crypto.randomUUID()
+      navigator.sendBeacon(`https://${uuid}.ac.bcon.ecdns.net/udp/${this.token}`)
+    } catch (e) {
+      console.warn('could not send beacon', e)
+    }
+  }
 
-        resolve()
-      }, params)
-    })
+  private flushMetrics() {
+    return { clsel: [] }
   }
 
   /**
@@ -380,7 +387,7 @@ class BrowserMetrics implements Metrics {
         // @ts-ignore
         this.connectionType = navigator.connection.effectiveType
       } catch (e) {
-        if (this.options.debug) {
+        if (this.debug) {
           console.debug('[RUM] could not obtain navigator.connection metrics')
         }
       }
@@ -503,7 +510,7 @@ class BrowserMetrics implements Metrics {
   /**
    * Sends all collected metrics to Edgio RUM.
    */
-  send = debounce(() => {
+  send = () => {
     const body = this.createPayload()
 
     if (!this.token) {
@@ -520,8 +527,11 @@ class BrowserMetrics implements Metrics {
       return
     }
 
+    if (this.debug) {
+      console.log('[RUM] sending', JSON.parse(body))
+    }
+
     if (navigator.sendBeacon) {
-      // Why we use sendBea
       // Use `navigator.sendBeacon()` if available, falling back to `fetch()`.
       navigator.sendBeacon(this.sendTo, body)
     } else {
@@ -529,7 +539,7 @@ class BrowserMetrics implements Metrics {
     }
 
     this.index++
-  }, SEND_DELAY)
+  }
 }
 
 const getEnvironmentCookieValue = () => {
