@@ -1,7 +1,6 @@
 // @ts-nocheck
 module.exports = () => {
   let clsDelta = 2
-  let clsEntries = []
   let largestShiftTarget = '#home'
 
   jest.doMock('web-vitals/attribution', () => ({
@@ -15,22 +14,18 @@ module.exports = () => {
             name: 'CLS',
             value: 2,
             delta: clsDelta,
-            entries: clsEntries,
             attribution: { largestShiftTarget },
           }),
         3
       ),
     onTTFB: cb => setTimeout(() => cb({ name: 'TTFB', value: 4 }), 4),
-    onINP: cb => setTimeout(() => cb({ name: 'INP', value: 6, attribution: { eventTarget: '#casa' } }), 6),
+    onINP: cb =>
+      setTimeout(() => cb({ name: 'INP', value: 6, attribution: { eventTarget: '#casa' } }), 6),
   }))
 
   return {
     setClsDelta(d) {
       clsDelta = d
-    },
-
-    setClsEntries(entries) {
-      clsEntries = entries
     },
 
     setLargetShiftTarget(target: string) {
@@ -39,7 +34,6 @@ module.exports = () => {
 
     reset() {
       clsDelta = 2
-      clsEntries = []
       largestShiftTarget = '#home'
     },
   }

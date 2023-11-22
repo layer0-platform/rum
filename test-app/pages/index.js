@@ -2,6 +2,7 @@
 import Head from 'next/head'
 import { useCallback, useState } from 'react'
 import styles from '../styles/Home.module.css'
+import Link from 'next/link'
 
 export default function Home() {
   const [elements, setElements] = useState([])
@@ -23,6 +24,9 @@ export default function Home() {
         <h1 className={styles.title}>
           Welcome to <a href="https://nextjs.org">Next.js!</a>
         </h1>
+
+        <Link href="/help">Help</Link>
+
         <button onClick={createLayoutShift}>Create Layout Shift</button>
         {elements}
       </main>
