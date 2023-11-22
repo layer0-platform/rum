@@ -37,5 +37,5 @@ module.exports = {
     jasmine: 'readonly',
   },
   settings: {},
-  ignorePatterns: ['**/mocks/**/*'],
+  ignorePatterns: ['**/mocks/**/*', '**/test-app/**/*'],
 }
